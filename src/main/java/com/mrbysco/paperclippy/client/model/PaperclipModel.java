@@ -14,69 +14,69 @@ public class PaperclipModel<T extends PaperclipEntity> extends SegmentedModel<T>
 	private final ModelRenderer RightBrow;
 
 	public PaperclipModel() {
-		textureWidth = 64;
-		textureHeight = 64;
+		texWidth = 64;
+		texHeight = 64;
 
 		root = new ModelRenderer(this);
-		root.setRotationPoint(0.0F, 0.0F, 0.0F);
+		root.setPos(0.0F, 0.0F, 0.0F);
 
 
 		LeftBrow = new ModelRenderer(this);
-		LeftBrow.setRotationPoint(1.0F, 10.0F, -1.0F);
+		LeftBrow.setPos(1.0F, 10.0F, -1.0F);
 		root.addChild(LeftBrow);
-		LeftBrow.setTextureOffset(32, 26).addBox(-9.0F, -20.0F, -2.0F, 6.0F, 2.0F, 2.0F, 0.0F, true);
-		LeftBrow.setTextureOffset(40, 22).addBox(-11.0F, -18.0F, -2.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
+		LeftBrow.texOffs(32, 26).addBox(-9.0F, -20.0F, -2.0F, 6.0F, 2.0F, 2.0F, 0.0F, true);
+		LeftBrow.texOffs(40, 22).addBox(-11.0F, -18.0F, -2.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
 
 		LeftEye = new ModelRenderer(this);
-		LeftEye.setRotationPoint(1.0F, 10.0F, -1.0F);
+		LeftEye.setPos(1.0F, 10.0F, -1.0F);
 		root.addChild(LeftEye);
-		LeftEye.setTextureOffset(32, 32).addBox(-9.0F, -15.0F, -2.0F, 6.0F, 6.0F, 2.0F, 0.0F, true);
+		LeftEye.texOffs(32, 32).addBox(-9.0F, -15.0F, -2.0F, 6.0F, 6.0F, 2.0F, 0.0F, true);
 
 		Clip = new ModelRenderer(this);
-		Clip.setRotationPoint(1.0F, 10.0F, -1.0F);
+		Clip.setPos(1.0F, 10.0F, -1.0F);
 		root.addChild(Clip);
-		Clip.setTextureOffset(0, 0).addBox(-5.0F, 12.0F, 0.0F, 8.0F, 2.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(28, 0).addBox(-9.0F, 4.0F, 0.0F, 2.0F, 6.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(36, 0).addBox(-11.0F, 0.0F, 0.0F, 2.0F, 4.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(0, 18).addBox(-7.0F, -20.0F, 0.0F, 2.0F, 20.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(52, 0).addBox(5.0F, 0.0F, 0.0F, 2.0F, 10.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(16, 8).addBox(-3.0F, -24.0F, 0.0F, 6.0F, 2.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(34, 12).addBox(3.0F, -4.0F, 0.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(20, 0).addBox(-7.0F, 10.0F, 0.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(8, 4).addBox(5.0F, -20.0F, 0.0F, 2.0F, 8.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(44, 4).addBox(-5.0F, 0.0F, 0.0F, 2.0F, 6.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(32, 8).addBox(-5.0F, -22.0F, 0.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(44, 0).addBox(3.0F, 10.0F, 0.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(15, 12).addBox(-3.0F, 6.0F, 0.0F, 4.0F, 2.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(26, 12).addBox(1.0F, -2.0F, 0.0F, 2.0F, 8.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(0, 4).addBox(7.0F, -12.0F, 0.0F, 2.0F, 12.0F, 2.0F, 0.0F, true);
-		Clip.setTextureOffset(16, 4).addBox(3.0F, -22.0F, 0.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(0, 0).addBox(-5.0F, 12.0F, 0.0F, 8.0F, 2.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(28, 0).addBox(-9.0F, 4.0F, 0.0F, 2.0F, 6.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(36, 0).addBox(-11.0F, 0.0F, 0.0F, 2.0F, 4.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(0, 18).addBox(-7.0F, -20.0F, 0.0F, 2.0F, 20.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(52, 0).addBox(5.0F, 0.0F, 0.0F, 2.0F, 10.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(16, 8).addBox(-3.0F, -24.0F, 0.0F, 6.0F, 2.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(34, 12).addBox(3.0F, -4.0F, 0.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(20, 0).addBox(-7.0F, 10.0F, 0.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(8, 4).addBox(5.0F, -20.0F, 0.0F, 2.0F, 8.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(44, 4).addBox(-5.0F, 0.0F, 0.0F, 2.0F, 6.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(32, 8).addBox(-5.0F, -22.0F, 0.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(44, 0).addBox(3.0F, 10.0F, 0.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(15, 12).addBox(-3.0F, 6.0F, 0.0F, 4.0F, 2.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(26, 12).addBox(1.0F, -2.0F, 0.0F, 2.0F, 8.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(0, 4).addBox(7.0F, -12.0F, 0.0F, 2.0F, 12.0F, 2.0F, 0.0F, true);
+		Clip.texOffs(16, 4).addBox(3.0F, -22.0F, 0.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
 
 		RightEye = new ModelRenderer(this);
-		RightEye.setRotationPoint(1.0F, 10.0F, -1.0F);
+		RightEye.setPos(1.0F, 10.0F, -1.0F);
 		root.addChild(RightEye);
-		RightEye.setTextureOffset(16, 32).addBox(4.0F, -15.0F, -2.0F, 6.0F, 6.0F, 2.0F, 0.0F, true);
+		RightEye.texOffs(16, 32).addBox(4.0F, -15.0F, -2.0F, 6.0F, 6.0F, 2.0F, 0.0F, true);
 
 		RightBrow = new ModelRenderer(this);
-		RightBrow.setRotationPoint(1.0F, 10.0F, -1.0F);
+		RightBrow.setPos(1.0F, 10.0F, -1.0F);
 		root.addChild(RightBrow);
-		RightBrow.setTextureOffset(16, 26).addBox(4.0F, -20.0F, -2.0F, 6.0F, 2.0F, 2.0F, 0.0F, true);
-		RightBrow.setTextureOffset(16, 22).addBox(10.0F, -18.0F, -2.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
+		RightBrow.texOffs(16, 26).addBox(4.0F, -20.0F, -2.0F, 6.0F, 2.0F, 2.0F, 0.0F, true);
+		RightBrow.texOffs(16, 22).addBox(10.0F, -18.0F, -2.0F, 2.0F, 2.0F, 2.0F, 0.0F, true);
 	}
 
 	@Override
-	public void setRotationAngles(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+	public void setupAnim(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 
 	}
 
 	@Override
-	public Iterable<ModelRenderer> getParts() {
+	public Iterable<ModelRenderer> parts() {
 		return ImmutableList.of(this.root);
 	}
 
 	public void setRotationAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-		modelRenderer.rotateAngleX = x;
-		modelRenderer.rotateAngleY = y;
-		modelRenderer.rotateAngleZ = z;
+		modelRenderer.xRot = x;
+		modelRenderer.yRot = y;
+		modelRenderer.zRot = z;
 	}
 }

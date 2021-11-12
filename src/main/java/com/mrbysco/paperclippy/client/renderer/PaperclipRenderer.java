@@ -17,7 +17,7 @@ public class PaperclipRenderer extends MobRenderer<PaperclipEntity, PaperclipMod
 	}
 
 	@Override
-	protected void preRenderCallback(PaperclipEntity entitylivingbaseIn, MatrixStack matrixStackIn, float partialTickTime) {
+	protected void scale(PaperclipEntity entitylivingbaseIn, MatrixStack matrixStackIn, float partialTickTime) {
 		float f = 0.999F;
 		matrixStackIn.scale(f, f, f);
 		matrixStackIn.translate(0.0D, (double)0.001F, 0.0D);
@@ -27,7 +27,7 @@ public class PaperclipRenderer extends MobRenderer<PaperclipEntity, PaperclipMod
 		matrixStackIn.scale(f3 * f1, 1.0F / f3 * f1, f3 * f1);
 	}
 
-	public ResourceLocation getEntityTexture(PaperclipEntity entity) {
+	public ResourceLocation getTextureLocation(PaperclipEntity entity) {
 		return TEXTURE;
 	}
 }

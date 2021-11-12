@@ -4,6 +4,8 @@ import com.mrbysco.paperclippy.entity.PaperclipEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.text.event.ClickEvent;
 
+import net.minecraft.util.text.event.ClickEvent.Action;
+
 public class FightClickEvent extends ClickEvent {
 	private final PaperclipEntity paperclip;
 
@@ -15,9 +17,9 @@ public class FightClickEvent extends ClickEvent {
 	@Override
 	public String getValue() {
 		LivingEntity owner = paperclip.getOwner();
-		LivingEntity attackTarget = owner.getLastAttackedEntity();
+		LivingEntity attackTarget = owner.getLastHurtMob();
 		if(attackTarget != null && attackTarget != paperclip && attackTarget.isAlive()) {
-			paperclip.setAttackTarget(attackTarget);
+			paperclip.setTarget(attackTarget);
 		}
 		return super.getValue();
 	}

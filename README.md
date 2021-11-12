@@ -1,3 +1,5 @@
+[![build](https://github.com/Mrbysco/Paperclippy/actions/workflows/build.yml/badge.svg)](https://github.com/Mrbysco/Paperclippy/actions/workflows/build.yml) 
+[![](http://cf.way2muchnoise.eu/versions/463569.svg)](https://www.curseforge.com/minecraft/mc-mods/paperclippy)
 # Paperclippy #
 
 ## About ##

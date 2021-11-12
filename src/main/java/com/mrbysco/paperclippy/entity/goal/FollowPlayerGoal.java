@@ -28,13 +28,13 @@ public class FollowPlayerGoal extends Goal {
 
 	public FollowPlayerGoal(PaperclipEntity paperclipIn, double followSpeedIn, float minDistIn, float maxDistIn) {
 		this.paperclip = paperclipIn;
-		this.world = paperclipIn.world;
+		this.world = paperclipIn.level;
 		this.followSpeed = followSpeedIn;
-		this.navigator = paperclipIn.getNavigator();
+		this.navigator = paperclipIn.getNavigation();
 		this.minDist = minDistIn;
 		this.maxDist = maxDistIn;
-		this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
-		if (!(paperclipIn.getNavigator() instanceof GroundPathNavigator) && !(paperclipIn.getNavigator() instanceof FlyingPathNavigator)) {
+		this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
+		if (!(paperclipIn.getNavigation() instanceof GroundPathNavigator) && !(paperclipIn.getNavigation() instanceof FlyingPathNavigator)) {
 			throw new IllegalArgumentException("Unsupported mob type for FollowplayerGoal");
 		}
 	}
@@ -42,13 +42,13 @@ public class FollowPlayerGoal extends Goal {
 	/**
 	 * Returns whether the EntityAIBase should begin execution.
 	 */
-	public boolean shouldExecute() {
+	public boolean canUse() {
 		LivingEntity livingentity = this.paperclip.getOwner();
 		if (livingentity == null) {
 			return false;
 		} else if (livingentity.isSpectator()) {
 			return false;
-		} else if (this.paperclip.getDistanceSq(livingentity) < (double)(this.minDist * this.minDist)) {
+		} else if (this.paperclip.distanceToSqr(livingentity) < (double)(this.minDist * this.minDist)) {
 			return false;
 		} else {
 			this.owner = livingentity;
@@ -59,47 +59,47 @@ public class FollowPlayerGoal extends Goal {
 	/**
 	 * Returns whether an in-progress EntityAIBase should continue executing
 	 */
-	public boolean shouldContinueExecuting() {
-		return !this.navigator.noPath() && !(this.paperclip.getDistanceSq(this.owner) <= (double)(this.maxDist * this.maxDist));
+	public boolean canContinueToUse() {
+		return !this.navigator.isDone() && !(this.paperclip.distanceToSqr(this.owner) <= (double)(this.maxDist * this.maxDist));
 	}
 
 	/**
 	 * Execute a one shot task or start executing a continuous task
 	 */
-	public void startExecuting() {
+	public void start() {
 		this.timeToRecalcPath = 0;
-		this.oldWaterCost = this.paperclip.getPathPriority(PathNodeType.WATER);
-		this.paperclip.setPathPriority(PathNodeType.WATER, 0.0F);
+		this.oldWaterCost = this.paperclip.getPathfindingMalus(PathNodeType.WATER);
+		this.paperclip.setPathfindingMalus(PathNodeType.WATER, 0.0F);
 	}
 
 	/**
 	 * Reset the task's internal state. Called when this task is interrupted by another one
 	 */
-	public void resetTask() {
+	public void stop() {
 		this.owner = null;
-		this.navigator.clearPath();
-		this.paperclip.setPathPriority(PathNodeType.WATER, this.oldWaterCost);
+		this.navigator.stop();
+		this.paperclip.setPathfindingMalus(PathNodeType.WATER, this.oldWaterCost);
 	}
 
 	/**
 	 * Keep ticking a continuous task that has already been started
 	 */
 	public void tick() {
-		this.paperclip.getLookController().setLookPositionWithEntity(this.owner, 10.0F, (float)this.paperclip.getVerticalFaceSpeed());
+		this.paperclip.getLookControl().setLookAt(this.owner, 10.0F, (float)this.paperclip.getMaxHeadXRot());
 		if (--this.timeToRecalcPath <= 0) {
 			this.timeToRecalcPath = 10;
-			if (!this.paperclip.getLeashed() && !this.paperclip.isPassenger()) {
-				if (this.paperclip.getDistanceSq(this.owner) >= 144.0D) {
+			if (!this.paperclip.isLeashed() && !this.paperclip.isPassenger()) {
+				if (this.paperclip.distanceToSqr(this.owner) >= 144.0D) {
 					this.tryToTeleportNearEntity();
 				} else {
-					this.navigator.tryMoveToEntityLiving(this.owner, this.followSpeed);
+					this.navigator.moveTo(this.owner, this.followSpeed);
 				}
 
 			}
 		}
 	}
 	private void tryToTeleportNearEntity() {
-		BlockPos blockpos = this.owner.getPosition();
+		BlockPos blockpos = this.owner.blockPosition();
 
 		for(int i = 0; i < 10; ++i) {
 			int j = this.getRandomNumber(-3, 3);
@@ -113,33 +113,33 @@ public class FollowPlayerGoal extends Goal {
 	}
 
 	private boolean tryToTeleportToLocation(int x, int y, int z) {
-		if (Math.abs((double)x - this.owner.getPosX()) < 2.0D && Math.abs((double)z - this.owner.getPosZ()) < 2.0D) {
+		if (Math.abs((double)x - this.owner.getX()) < 2.0D && Math.abs((double)z - this.owner.getZ()) < 2.0D) {
 			return false;
 		} else if (!this.isTeleportFriendlyBlock(new BlockPos(x, y, z))) {
 			return false;
 		} else {
-			this.paperclip.setLocationAndAngles((double)x + 0.5D, (double)y, (double)z + 0.5D, this.paperclip.rotationYaw, this.paperclip.rotationPitch);
-			this.navigator.clearPath();
+			this.paperclip.moveTo((double)x + 0.5D, (double)y, (double)z + 0.5D, this.paperclip.yRot, this.paperclip.xRot);
+			this.navigator.stop();
 			return true;
 		}
 	}
 
 	private boolean isTeleportFriendlyBlock(BlockPos pos) {
-		PathNodeType pathnodetype = WalkNodeProcessor.getFloorNodeType(this.world, pos.toMutable());
+		PathNodeType pathnodetype = WalkNodeProcessor.getBlockPathTypeStatic(this.world, pos.mutable());
 		if (pathnodetype != PathNodeType.WALKABLE) {
 			return false;
 		} else {
-			BlockState blockstate = this.world.getBlockState(pos.down());
+			BlockState blockstate = this.world.getBlockState(pos.below());
 			if (blockstate.getBlock() instanceof LeavesBlock) { //Don't teleport to leaves
 				return false;
 			} else {
-				BlockPos blockpos = pos.subtract(this.paperclip.getPosition());
-				return this.world.hasNoCollisions(this.paperclip, this.paperclip.getBoundingBox().offset(blockpos));
+				BlockPos blockpos = pos.subtract(this.paperclip.blockPosition());
+				return this.world.noCollision(this.paperclip, this.paperclip.getBoundingBox().move(blockpos));
 			}
 		}
 	}
 
 	private int getRandomNumber(int min, int max) {
-		return this.paperclip.getRNG().nextInt(max - min + 1) + min;
+		return this.paperclip.getRandom().nextInt(max - min + 1) + min;
 	}
 }

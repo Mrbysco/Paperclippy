@@ -24,15 +24,17 @@ import net.minecraftforge.common.util.FakePlayer;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import net.minecraft.item.Item.Properties;
+
 public class PaperclipItem extends Item {
 	public PaperclipItem(Properties properties) {
 		super(properties);
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand handIn) {
-		ItemStack itemstack = playerIn.getHeldItem(handIn);
-		RayTraceResult raytraceresult = this.rayTrace(worldIn, playerIn, FluidMode.NONE);
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
+		ItemStack itemstack = playerIn.getItemInHand(handIn);
+		RayTraceResult raytraceresult = this.getPlayerPOVHitResult(worldIn, playerIn, FluidMode.NONE);
 		ActionResult<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onBucketUse(playerIn, worldIn, itemstack, raytraceresult);
 		if (ret != null) return ret;
 
@@ -42,14 +44,14 @@ public class PaperclipItem extends Item {
 			return new ActionResult<>(ActionResultType.PASS, itemstack);
 		} else {
 			BlockRayTraceResult traceResult = (BlockRayTraceResult)raytraceresult;
-			BlockPos blockpos = traceResult.getPos();
+			BlockPos blockpos = traceResult.getBlockPos();
 			PaperclipEntity clippy = PaperRegistry.PAPERCLIPPY.get().create(worldIn);
 			if(clippy != null) {
-				clippy.setPositionAndUpdate(blockpos.getX(), blockpos.getY() + 1, blockpos.getZ());
+				clippy.teleportTo(blockpos.getX(), blockpos.getY() + 1, blockpos.getZ());
 				if(!(playerIn instanceof FakePlayer)) {
-					clippy.setOwnerId(playerIn.getUniqueID());
+					clippy.setOwnerId(playerIn.getUUID());
 				}
-				worldIn.addEntity(clippy);
+				worldIn.addFreshEntity(clippy);
 			}
 
 			if (!playerIn.isCreative()) {
@@ -60,8 +62,8 @@ public class PaperclipItem extends Item {
 	}
 
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-		super.addInformation(stack, worldIn, tooltip, flagIn);
-		tooltip.add(new TranslationTextComponent(Reference.MOD_ID + ".paperclip.info").mergeStyle(TextFormatting.YELLOW));
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
+		super.appendHoverText(stack, worldIn, tooltip, flagIn);
+		tooltip.add(new TranslationTextComponent(Reference.MOD_ID + ".paperclip.info").withStyle(TextFormatting.YELLOW));
 	}
 }

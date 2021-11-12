@@ -47,7 +47,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class PaperclipEntity extends CreatureEntity {
-	protected static final DataParameter<Optional<UUID>> OWNER_UNIQUE_ID = EntityDataManager.createKey(PaperclipEntity.class, DataSerializers.OPTIONAL_UNIQUE_ID);
+	protected static final DataParameter<Optional<UUID>> OWNER_UNIQUE_ID = EntityDataManager.defineId(PaperclipEntity.class, DataSerializers.OPTIONAL_UUID);
 
 	public float jumpAmount;
 	public float jumpFactor;
@@ -59,12 +59,12 @@ public class PaperclipEntity extends CreatureEntity {
 
 	public PaperclipEntity(EntityType<? extends PaperclipEntity> entityType, World worldIn) {
 		super(entityType, worldIn);
-		this.moveController = new PaperclipMovementController(this);
+		this.moveControl = new PaperclipMovementController(this);
 	}
 
-	protected void registerData() {
-		super.registerData();
-		this.dataManager.register(OWNER_UNIQUE_ID, Optional.empty());
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(OWNER_UNIQUE_ID, Optional.empty());
 	}
 
 	protected void registerGoals() {
@@ -79,53 +79,53 @@ public class PaperclipEntity extends CreatureEntity {
 	}
 
 	private void registerTargetGoals() {
-		this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setCallsForHelp(PaperclipEntity.class));
+		this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(PaperclipEntity.class));
 	}
 
 	public static AttributeModifierMap.MutableAttribute registerAttributes() {
-		return MobEntity.func_233666_p_()
-				.createMutableAttribute(Attributes.MAX_HEALTH, 16.0D)
-				.createMutableAttribute(Attributes.FOLLOW_RANGE, 30.0D)
-				.createMutableAttribute(Attributes.MOVEMENT_SPEED, 0.2F)
-				.createMutableAttribute(Attributes.FOLLOW_RANGE, 20.0D)
-				.createMutableAttribute(Attributes.MOVEMENT_SPEED, 0.3D)
-				.createMutableAttribute(Attributes.ATTACK_DAMAGE, 1.0D)
-				.createMutableAttribute(Attributes.ARMOR, 2.0D);
+		return MobEntity.createMobAttributes()
+				.add(Attributes.MAX_HEALTH, 16.0D)
+				.add(Attributes.FOLLOW_RANGE, 30.0D)
+				.add(Attributes.MOVEMENT_SPEED, 0.2F)
+				.add(Attributes.FOLLOW_RANGE, 20.0D)
+				.add(Attributes.MOVEMENT_SPEED, 0.3D)
+				.add(Attributes.ATTACK_DAMAGE, 1.0D)
+				.add(Attributes.ARMOR, 2.0D);
 	}
 
 	@Override
 	protected SoundEvent getAmbientSound() {
-		if(!this.dead && !this.world.isRemote) {
+		if(!this.dead && !this.level.isClientSide) {
 			if(this.tipCooldown == 0) {
 				this.tipCooldown = 200;
 				LivingEntity owner = getOwner();
 				if(owner instanceof PlayerEntity) {
 					PlayerEntity player = (PlayerEntity)owner;
 
-					boolean recentlyAttacked = (player.ticksExisted - player.getLastAttackedEntityTime()) < 200;
-					boolean containerOpen = player.openContainer.containerType != null;
+					boolean recentlyAttacked = (player.tickCount - player.getLastHurtMobTimestamp()) < 200;
+					boolean containerOpen = player.containerMenu.menuType != null;
 					if(containerOpen) {
-						ResourceLocation registryName = player.openContainer.containerType.getRegistryName();
+						ResourceLocation registryName = player.containerMenu.menuType.getRegistryName();
 						if(registryName.toString().equals("minecraft:crafting")) {
-							System.out.println(player.openContainer.getInventory().toString());
+							System.out.println(player.containerMenu.getItems().toString());
 						}
 					}
 
 					if(recentlyAttacked) {
-						IFormattableTextComponent baseComponent = new StringTextComponent("<Paperclippy> ").mergeStyle(TextFormatting.YELLOW);
-						IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.fighting").mergeStyle(TextFormatting.WHITE);
+						IFormattableTextComponent baseComponent = new StringTextComponent("<Paperclippy> ").withStyle(TextFormatting.YELLOW);
+						IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.fighting").withStyle(TextFormatting.WHITE);
 						IFormattableTextComponent yesComponent = new StringTextComponent("Yes");
 						yesComponent.setStyle(textComponent.getStyle()
-								.setClickEvent(new FightClickEvent("/tellraw @a [\"\",{\"text\":\"<Paperclippy>\",\"color\":\"yellow\"},{\"text\":\" Ok, here I go\"}]", this)));
-						yesComponent.mergeStyle(TextFormatting.GREEN);
+								.withClickEvent(new FightClickEvent("/tellraw @a [\"\",{\"text\":\"<Paperclippy>\",\"color\":\"yellow\"},{\"text\":\" Ok, here I go\"}]", this)));
+						yesComponent.withStyle(TextFormatting.GREEN);
 						IFormattableTextComponent betweenComponent = new StringTextComponent(", ");
 						IFormattableTextComponent noComponent = new StringTextComponent("No");
 						noComponent.setStyle(textComponent.getStyle()
-								.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/tellraw @a [\"\",{\"text\":\"<Paperclippy>\",\"color\":\"yellow\"},{\"text\":\" I'll leave you be\"}]")));
-						noComponent.mergeStyle(TextFormatting.RED);
-						baseComponent.appendSibling(textComponent).appendSibling(yesComponent).appendSibling(betweenComponent).appendSibling(noComponent);
+								.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/tellraw @a [\"\",{\"text\":\"<Paperclippy>\",\"color\":\"yellow\"},{\"text\":\" I'll leave you be\"}]")));
+						noComponent.withStyle(TextFormatting.RED);
+						baseComponent.append(textComponent).append(yesComponent).append(betweenComponent).append(noComponent);
 
-						player.sendMessage(baseComponent, Util.DUMMY_UUID);
+						player.sendMessage(baseComponent, Util.NIL_UUID);
 					}
 				}
 			}
@@ -134,13 +134,13 @@ public class PaperclipEntity extends CreatureEntity {
 	}
 
 	@Override
-	protected void collideWithEntity(Entity entityIn) {
-		super.collideWithEntity(entityIn);
-		LivingEntity target = this.getAttackTarget();
+	protected void doPush(Entity entityIn) {
+		super.doPush(entityIn);
+		LivingEntity target = this.getTarget();
 		if(this.isAlive() && target != null && target != this && target == entityIn) {
-			if (this.getDistanceSq(entityIn) < 0.6D * 2 * 0.6D * 2 && this.canEntityBeSeen(entityIn) && entityIn.attackEntityFrom(DamageSource.causeMobDamage(this), (float)this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
-				this.playSound(SoundEvents.ENTITY_SLIME_ATTACK, 1.0F, (this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F + 1.0F);
-				this.applyEnchantments(this, entityIn);
+			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.canSee(entityIn) && entityIn.hurt(DamageSource.mobAttack(this), (float)this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
+				this.playSound(SoundEvents.SLIME_ATTACK, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
+				this.doEnchantDamageEffects(this, entityIn);
 			}
 		}
 	}
@@ -148,13 +148,13 @@ public class PaperclipEntity extends CreatureEntity {
 	@Override
 	protected SoundEvent getHurtSound(DamageSource source) {
 		LivingEntity owner = getOwner();
-		if(owner instanceof PlayerEntity && !world.isRemote && (this.lastHurtMessageTime == 0 || (this.ticksExisted - this.lastHurtMessageTime) > 100)) {
-			this.lastHurtMessageTime = this.ticksExisted;
+		if(owner instanceof PlayerEntity && !level.isClientSide && (this.lastHurtMessageTime == 0 || (this.tickCount - this.lastHurtMessageTime) > 100)) {
+			this.lastHurtMessageTime = this.tickCount;
 			PlayerEntity player = (PlayerEntity) owner;
-			IFormattableTextComponent baseComponent = new StringTextComponent("<Paperclippy> ").mergeStyle(TextFormatting.YELLOW);
-			IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.hurt").mergeStyle(TextFormatting.WHITE);
-			baseComponent.appendSibling(textComponent);
-			player.sendMessage(baseComponent, Util.DUMMY_UUID);
+			IFormattableTextComponent baseComponent = new StringTextComponent("<Paperclippy> ").withStyle(TextFormatting.YELLOW);
+			IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.hurt").withStyle(TextFormatting.WHITE);
+			baseComponent.append(textComponent);
+			player.sendMessage(baseComponent, Util.NIL_UUID);
 		}
 		return null;
 	}
@@ -162,58 +162,58 @@ public class PaperclipEntity extends CreatureEntity {
 	@Override
 	protected SoundEvent getDeathSound() {
 		LivingEntity owner = getOwner();
-		if(owner instanceof PlayerEntity && !world.isRemote) {
+		if(owner instanceof PlayerEntity && !level.isClientSide) {
 			PlayerEntity player = (PlayerEntity) owner;
-			IFormattableTextComponent baseComponent = new StringTextComponent("<Paperclippy> ").mergeStyle(TextFormatting.YELLOW);
-			IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.death").mergeStyle(TextFormatting.WHITE);
-			baseComponent.appendSibling(textComponent);
-			player.sendMessage(baseComponent, Util.DUMMY_UUID);
+			IFormattableTextComponent baseComponent = new StringTextComponent("<Paperclippy> ").withStyle(TextFormatting.YELLOW);
+			IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.death").withStyle(TextFormatting.WHITE);
+			baseComponent.append(textComponent);
+			player.sendMessage(baseComponent, Util.NIL_UUID);
 		}
 		return null;
 	}
 
 	@Nullable
 	public UUID getOwnerId() {
-		return this.dataManager.get(OWNER_UNIQUE_ID).orElse((UUID)null);
+		return this.entityData.get(OWNER_UNIQUE_ID).orElse((UUID)null);
 	}
 
 	public void setOwnerId(@Nullable UUID p_184754_1_) {
-		this.dataManager.set(OWNER_UNIQUE_ID, Optional.ofNullable(p_184754_1_));
+		this.entityData.set(OWNER_UNIQUE_ID, Optional.ofNullable(p_184754_1_));
 	}
 
 	@Nullable
 	public LivingEntity getOwner() {
 		try {
 			UUID uuid = this.getOwnerId();
-			return uuid == null ? null : this.world.getPlayerByUuid(uuid);
+			return uuid == null ? null : this.level.getPlayerByUUID(uuid);
 		} catch (IllegalArgumentException illegalargumentexception) {
 			return null;
 		}
 	}
 
 	@Override
-	public void writeAdditional(CompoundNBT compound) {
-		super.writeAdditional(compound);
+	public void addAdditionalSaveData(CompoundNBT compound) {
+		super.addAdditionalSaveData(compound);
 		compound.putBoolean("wasOnGround", this.wasOnGround);
 		compound.putInt("tipCooldown", this.tipCooldown);
 
 		if (this.getOwnerId() != null) {
-			compound.putUniqueId("Owner", this.getOwnerId());
+			compound.putUUID("Owner", this.getOwnerId());
 		}
 	}
 
 	@Override
-	public void readAdditional(CompoundNBT compound) {
-		super.readAdditional(compound);
+	public void readAdditionalSaveData(CompoundNBT compound) {
+		super.readAdditionalSaveData(compound);
 		this.wasOnGround = compound.getBoolean("wasOnGround");
 		this.tipCooldown = compound.getInt("tipCooldown");
 
 		UUID uuid;
-		if (compound.hasUniqueId("Owner")) {
-			uuid = compound.getUniqueId("Owner");
+		if (compound.hasUUID("Owner")) {
+			uuid = compound.getUUID("Owner");
 		} else {
 			String s = compound.getString("Owner");
-			uuid = PreYggdrasilConverter.convertMobOwnerIfNeeded(this.getServer(), s);
+			uuid = PreYggdrasilConverter.convertMobOwnerIfNecessary(this.getServer(), s);
 		}
 
 		if (uuid != null) {
@@ -234,18 +234,18 @@ public class PaperclipEntity extends CreatureEntity {
 		if (this.onGround && !this.wasOnGround) {
 			int i = 2;
 			for(int j = 0; j < i * 8; ++j) {
-				float f = this.rand.nextFloat() * ((float)Math.PI * 2F);
-				float f1 = this.rand.nextFloat() * 0.5F + 0.5F;
+				float f = this.random.nextFloat() * ((float)Math.PI * 2F);
+				float f1 = this.random.nextFloat() * 0.5F + 0.5F;
 				float f2 = MathHelper.sin(f) * (float)i * 0.5F * f1;
 				float f3 = MathHelper.cos(f) * (float)i * 0.5F * f1;
-				World world = this.world;
+				World world = this.level;
 				IParticleData iparticledata = ParticleTypes.FIREWORK;
-				double d0 = this.getPosX() + (double)f2;
-				double d1 = this.getPosZ() + (double)f3;
+				double d0 = this.getX() + (double)f2;
+				double d1 = this.getZ() + (double)f3;
 				world.addParticle(iparticledata, d0, this.getBoundingBox().minY, d1, 0.0D, 0.0D, 0.0D);
 			}
 
-			this.playSound(this.getJumpSound(), this.getSoundVolume(), ((this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F + 1.0F) / 0.8F);
+			this.playSound(this.getJumpSound(), this.getSoundVolume(), ((this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F) / 0.8F);
 			this.jumpAmount = -0.5F;
 		} else if (!this.onGround && this.wasOnGround) {
 			this.jumpAmount = 1.0F;
@@ -259,17 +259,17 @@ public class PaperclipEntity extends CreatureEntity {
 		this.jumpAmount *= 0.6F;
 	}
 
-	protected void jump() {
-		Vector3d vec3d = this.getMotion();
-		this.setMotion(vec3d.x, (double)0.42F, vec3d.z);
-		this.isAirBorne = true;
+	protected void jumpFromGround() {
+		Vector3d vec3d = this.getDeltaMovement();
+		this.setDeltaMovement(vec3d.x, (double)0.42F, vec3d.z);
+		this.hasImpulse = true;
 	}
 
 	/**
 	 * Gets the amount of time the clippy needs to wait between jumps.
 	 */
 	protected int getJumpDelay() {
-		return this.rand.nextInt(20) + 10;
+		return this.random.nextInt(20) + 10;
 	}
 
 	protected SoundEvent getJumpSound() {
@@ -277,14 +277,14 @@ public class PaperclipEntity extends CreatureEntity {
 	}
 
 	public PlayerEntity getNearestPlayer(int range) {
-		AxisAlignedBB axisalignedbb = (new AxisAlignedBB(getPosX(), getPosY(), getPosZ(), getPosX() + 1, getPosY() + 1, getPosZ() + 1)).grow(range);
-		List<PlayerEntity> list = world.getEntitiesWithinAABB(PlayerEntity.class, axisalignedbb);
+		AxisAlignedBB axisalignedbb = (new AxisAlignedBB(getX(), getY(), getZ(), getX() + 1, getY() + 1, getZ() + 1)).inflate(range);
+		List<PlayerEntity> list = level.getEntitiesOfClass(PlayerEntity.class, axisalignedbb);
 		return !list.isEmpty() ? list.get(0) : null;
 	}
 
 	public boolean isPlayerNearby(int range) {
-		AxisAlignedBB axisalignedbb = (new AxisAlignedBB(getPosX(), getPosY(), getPosZ(), getPosX() + 1, getPosY() + 1, getPosZ() + 1)).grow(range);
-		List<PlayerEntity> list = world.getEntitiesWithinAABB(PlayerEntity.class, axisalignedbb);
+		AxisAlignedBB axisalignedbb = (new AxisAlignedBB(getX(), getY(), getZ(), getX() + 1, getY() + 1, getZ() + 1)).inflate(range);
+		List<PlayerEntity> list = level.getEntitiesOfClass(PlayerEntity.class, axisalignedbb);
 		return !list.isEmpty();
 	}
 
@@ -293,27 +293,27 @@ public class PaperclipEntity extends CreatureEntity {
 
 		public FloatGoal(PaperclipEntity paperclipIn) {
 			this.paperclip = paperclipIn;
-			this.setMutexFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
-			paperclipIn.getNavigator().setCanSwim(true);
+			this.setFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
+			paperclipIn.getNavigation().setCanFloat(true);
 		}
 
 		/**
 		 * Returns whether execution should begin. You can also read and cache any state necessary for execution in this
 		 * method as well.
 		 */
-		public boolean shouldExecute() {
-			return (this.paperclip.isInWater() || this.paperclip.isInLava()) && this.paperclip.getMoveHelper() instanceof PaperclipEntity.PaperclipMovementController;
+		public boolean canUse() {
+			return (this.paperclip.isInWater() || this.paperclip.isInLava()) && this.paperclip.getMoveControl() instanceof PaperclipEntity.PaperclipMovementController;
 		}
 
 		/**
 		 * Keep ticking a continuous task that has already been started
 		 */
 		public void tick() {
-			if (this.paperclip.getRNG().nextFloat() < 0.8F) {
-				this.paperclip.getJumpController().setJumping();
+			if (this.paperclip.getRandom().nextFloat() < 0.8F) {
+				this.paperclip.getJumpControl().jump();
 			}
 
-			((PaperclipEntity.PaperclipMovementController)this.paperclip.getMoveHelper()).setSpeed(1.2D);
+			((PaperclipEntity.PaperclipMovementController)this.paperclip.getMoveControl()).setSpeed(1.2D);
 		}
 	}
 
@@ -322,13 +322,13 @@ public class PaperclipEntity extends CreatureEntity {
 
 		public HopGoal(PaperclipEntity paperclipIn) {
 			this.paperclip = paperclipIn;
-			this.setMutexFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
+			this.setFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
 		}
 
 		/**
 		 * Returns whether the EntityAIBase should begin execution.
 		 */
-		public boolean shouldExecute() {
+		public boolean canUse() {
 			return true;
 		}
 
@@ -336,7 +336,7 @@ public class PaperclipEntity extends CreatureEntity {
 		 * Keep ticking a continuous task that has already been started
 		 */
 		public void tick() {
-			((PaperclipEntity.PaperclipMovementController)this.paperclip.getMoveHelper()).setSpeed(1.0D);
+			((PaperclipEntity.PaperclipMovementController)this.paperclip.getMoveControl()).setSpeed(1.0D);
 		}
 	}
 
@@ -349,7 +349,7 @@ public class PaperclipEntity extends CreatureEntity {
 		public PaperclipMovementController(PaperclipEntity paperclipIn) {
 			super(paperclipIn);
 			this.paperclip = paperclipIn;
-			this.yRot = 180.0F * paperclipIn.rotationYaw / (float)Math.PI;
+			this.yRot = 180.0F * paperclipIn.yRot / (float)Math.PI;
 		}
 
 		public void setDirection(float p_179920_1_, boolean p_179920_2_) {
@@ -358,22 +358,22 @@ public class PaperclipEntity extends CreatureEntity {
 		}
 
 		public void setSpeed(double speedIn) {
-			this.speed = speedIn;
-			this.action = MovementController.Action.MOVE_TO;
+			this.speedModifier = speedIn;
+			this.operation = MovementController.Action.MOVE_TO;
 		}
 
 		public void tick() {
-			this.mob.rotationYaw = this.limitAngle(this.mob.rotationYaw, this.yRot, 90.0F);
-			this.mob.rotationYawHead = this.mob.rotationYaw;
-			this.mob.renderYawOffset = this.mob.rotationYaw;
+			this.mob.yRot = this.rotlerp(this.mob.yRot, this.yRot, 90.0F);
+			this.mob.yHeadRot = this.mob.yRot;
+			this.mob.yBodyRot = this.mob.yRot;
 
-			if (this.action != MovementController.Action.MOVE_TO) {
-				this.mob.setMoveForward(0.0F);
+			if (this.operation != MovementController.Action.MOVE_TO) {
+				this.mob.setZza(0.0F);
 			} else {
-				this.action = MovementController.Action.WAIT;
+				this.operation = MovementController.Action.WAIT;
 
 				if (this.mob.isOnGround()) {
-					this.mob.setAIMoveSpeed((float)(this.speed * this.mob.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
+					this.mob.setSpeed((float)(this.speedModifier * this.mob.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
 
 					if (this.jumpDelay-- <= 0) {
 						this.jumpDelay = this.paperclip.getJumpDelay();
@@ -382,16 +382,16 @@ public class PaperclipEntity extends CreatureEntity {
 							this.jumpDelay /= 3;
 						}
 
-						this.paperclip.getJumpController().setJumping();
+						this.paperclip.getJumpControl().jump();
 
-						this.paperclip.playSound(this.paperclip.getJumpSound(), 0.5F, ((this.paperclip.getRNG().nextFloat() - this.paperclip.getRNG().nextFloat()) * 0.2F + 1.0F) * 0.8F);
+						this.paperclip.playSound(this.paperclip.getJumpSound(), 0.5F, ((this.paperclip.getRandom().nextFloat() - this.paperclip.getRandom().nextFloat()) * 0.2F + 1.0F) * 0.8F);
 					} else {
-						this.paperclip.moveStrafing = 0.0F;
-						this.paperclip.moveForward = 0.0F;
-						this.mob.setAIMoveSpeed(0.0F);
+						this.paperclip.xxa = 0.0F;
+						this.paperclip.zza = 0.0F;
+						this.mob.setSpeed(0.0F);
 					}
 				} else {
-					this.mob.setAIMoveSpeed((float)(this.speed * this.mob.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
+					this.mob.setSpeed((float)(this.speedModifier * this.mob.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
 				}
 			}
 		}
@@ -403,42 +403,42 @@ public class PaperclipEntity extends CreatureEntity {
 
 		public PaperclipAttackGoal(PaperclipEntity paperclipIn) {
 			this.paperclip = paperclipIn;
-			this.setMutexFlags(EnumSet.of(Goal.Flag.LOOK));
+			this.setFlags(EnumSet.of(Goal.Flag.LOOK));
 		}
 
 		/**
 		 * Returns whether the EntityAIBase should begin execution.
 		 */
-		public boolean shouldExecute() {
-			LivingEntity LivingEntity = this.paperclip.getAttackTarget();
+		public boolean canUse() {
+			LivingEntity LivingEntity = this.paperclip.getTarget();
 			if (LivingEntity == null) {
 				return false;
 			} else if (!LivingEntity.isAlive()) {
 				return false;
 			} else {
-				return LivingEntity instanceof PlayerEntity && ((PlayerEntity)LivingEntity).abilities.disableDamage ? false : this.paperclip.getMoveHelper() instanceof PaperclipEntity.PaperclipMovementController;
+				return LivingEntity instanceof PlayerEntity && ((PlayerEntity)LivingEntity).abilities.invulnerable ? false : this.paperclip.getMoveControl() instanceof PaperclipEntity.PaperclipMovementController;
 			}
 		}
 
 		/**
 		 * Execute a one shot task or start executing a continuous task
 		 */
-		public void startExecuting() {
+		public void start() {
 			this.growTieredTimer = 300;
-			super.startExecuting();
+			super.start();
 		}
 
 		/**
 		 * Returns whether an in-progress EntityAIBase should continue executing
 		 */
-		public boolean shouldContinueExecuting() {
-			LivingEntity LivingEntity = this.paperclip.getAttackTarget();
+		public boolean canContinueToUse() {
+			LivingEntity LivingEntity = this.paperclip.getTarget();
 
 			if (LivingEntity == null) {
 				return false;
 			} else if (!LivingEntity.isAlive()) {
 				return false;
-			} else if (LivingEntity instanceof PlayerEntity && ((PlayerEntity)LivingEntity).abilities.disableDamage) {
+			} else if (LivingEntity instanceof PlayerEntity && ((PlayerEntity)LivingEntity).abilities.invulnerable) {
 				return false;
 			} else {
 				return --this.growTieredTimer > 0;
@@ -449,8 +449,8 @@ public class PaperclipEntity extends CreatureEntity {
 		 * Keep ticking a continuous task that has already been started
 		 */
 		public void tick() {
-			this.paperclip.faceEntity(this.paperclip.getAttackTarget(), 10.0F, 10.0F);
-			((PaperclipMovementController)this.paperclip.getMoveHelper()).setDirection(this.paperclip.rotationYaw, true);
+			this.paperclip.lookAt(this.paperclip.getTarget(), 10.0F, 10.0F);
+			((PaperclipMovementController)this.paperclip.getMoveControl()).setDirection(this.paperclip.yRot, true);
 		}
 	}
 }
