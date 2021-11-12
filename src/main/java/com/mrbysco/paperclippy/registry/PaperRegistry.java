@@ -31,8 +31,7 @@ public class PaperRegistry {
 
 	private static SoundEvent createSound(String name) {
 		ResourceLocation resourceLocation = new ResourceLocation(Reference.MOD_ID, name);
-		SoundEvent sound = new SoundEvent(resourceLocation);
-		return sound;
+		return new SoundEvent(resourceLocation);
 	}
 
 	public static void registerEntityAttributes(EntityAttributeCreationEvent event) {

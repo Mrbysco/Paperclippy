@@ -1,12 +1,12 @@
 {
     "_comment": "item names",
-    "item.paperclippy.paper_clip": "Paperclippy",
+    "item.paperclippy.paper_clip": "PaperClippy",
 	
     "_comment": "Entity names",
-    "entity.paperclippy.paperclippy": "Paperclippy",
+    "entity.paperclippy.paperclippy": "PaperClippy",
 	
     "_comment": "Subtitles",
-    "paperclippy.subtitle.paperclippy.jump": "Paperclippy jumps",
+    "paperclippy.subtitle.paperclippy.jump": "PaperClippy jumps",
 
     "_comment": "Text",
     "paperclippy.paperclip.info": "Need help with that?",
@@ -14,5 +14,8 @@
     "_comment": "Sentences",
     "paperclippy.line.hurt": "It looks like I'm getting hurt",
     "paperclippy.line.fighting": "It looks like you're fighting, need help? ",
-    "paperclippy.line.death": "It looks like I turned back into an item"
+    "paperclippy.line.death": "It looks like I turned back into an item",
+
+    "paperclippy.line.accept": "Ok, here I go",
+    "paperclippy.line.decline": "Ok, I'll leave you be"
 }

@@ -23,7 +23,7 @@ public class Paperclippy {
 
         eventBus.addListener(PaperRegistry::registerEntityAttributes);
 
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             eventBus.addListener(ClientHandler::onClientSetup);
         });
     }

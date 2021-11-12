@@ -3,6 +3,7 @@ package com.mrbysco.paperclippy.entity;
 import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
 import com.mrbysco.paperclippy.event.FightClickEvent;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -106,22 +107,25 @@ public class PaperclipEntity extends CreatureEntity {
 					boolean containerOpen = player.containerMenu.menuType != null;
 					if(containerOpen) {
 						ResourceLocation registryName = player.containerMenu.menuType.getRegistryName();
-						if(registryName.toString().equals("minecraft:crafting")) {
-							System.out.println(player.containerMenu.getItems().toString());
+						if(registryName != null && registryName.toString().equals("minecraft:crafting")) {
+							System.out.println(player.containerMenu.getItems());
 						}
 					}
 
 					if(recentlyAttacked) {
-						IFormattableTextComponent baseComponent = new StringTextComponent("<Paperclippy> ").withStyle(TextFormatting.YELLOW);
+						String name = getName().getString();
+						IFormattableTextComponent baseComponent = getBaseChatComponent();
 						IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.fighting").withStyle(TextFormatting.WHITE);
 						IFormattableTextComponent yesComponent = new StringTextComponent("Yes");
 						yesComponent.setStyle(textComponent.getStyle()
-								.withClickEvent(new FightClickEvent("/tellraw @a [\"\",{\"text\":\"<Paperclippy>\",\"color\":\"yellow\"},{\"text\":\" Ok, here I go\"}]", this)));
+								.withClickEvent(new FightClickEvent("/tellraw @a [\"\",{\"text\":\"" + getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
+										I18n.get("paperclippy.line.accept") + "\\\"}]", this)));
 						yesComponent.withStyle(TextFormatting.GREEN);
 						IFormattableTextComponent betweenComponent = new StringTextComponent(", ");
 						IFormattableTextComponent noComponent = new StringTextComponent("No");
 						noComponent.setStyle(textComponent.getStyle()
-								.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/tellraw @a [\"\",{\"text\":\"<Paperclippy>\",\"color\":\"yellow\"},{\"text\":\" I'll leave you be\"}]")));
+								.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/tellraw @a [\"\",{\"text\":\"" + getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
+										I18n.get("paperclippy.line.decline") + "\"}]")));
 						noComponent.withStyle(TextFormatting.RED);
 						baseComponent.append(textComponent).append(yesComponent).append(betweenComponent).append(noComponent);
 
@@ -151,7 +155,7 @@ public class PaperclipEntity extends CreatureEntity {
 		if(owner instanceof PlayerEntity && !level.isClientSide && (this.lastHurtMessageTime == 0 || (this.tickCount - this.lastHurtMessageTime) > 100)) {
 			this.lastHurtMessageTime = this.tickCount;
 			PlayerEntity player = (PlayerEntity) owner;
-			IFormattableTextComponent baseComponent = new StringTextComponent("<Paperclippy> ").withStyle(TextFormatting.YELLOW);
+			IFormattableTextComponent baseComponent = getBaseChatComponent();
 			IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.hurt").withStyle(TextFormatting.WHITE);
 			baseComponent.append(textComponent);
 			player.sendMessage(baseComponent, Util.NIL_UUID);
@@ -164,12 +168,20 @@ public class PaperclipEntity extends CreatureEntity {
 		LivingEntity owner = getOwner();
 		if(owner instanceof PlayerEntity && !level.isClientSide) {
 			PlayerEntity player = (PlayerEntity) owner;
-			IFormattableTextComponent baseComponent = new StringTextComponent("<Paperclippy> ").withStyle(TextFormatting.YELLOW);
+			IFormattableTextComponent baseComponent = getBaseChatComponent();
 			IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.death").withStyle(TextFormatting.WHITE);
 			baseComponent.append(textComponent);
 			player.sendMessage(baseComponent, Util.NIL_UUID);
 		}
 		return null;
+	}
+
+	protected String getChatName() {
+		return "<" + getName() + ">";
+	}
+
+	protected IFormattableTextComponent getBaseChatComponent() {
+		return new StringTextComponent(getChatName() + " ").withStyle(TextFormatting.YELLOW);
 	}
 
 	@Nullable
@@ -416,7 +428,7 @@ public class PaperclipEntity extends CreatureEntity {
 			} else if (!LivingEntity.isAlive()) {
 				return false;
 			} else {
-				return LivingEntity instanceof PlayerEntity && ((PlayerEntity)LivingEntity).abilities.invulnerable ? false : this.paperclip.getMoveControl() instanceof PaperclipEntity.PaperclipMovementController;
+				return (!(LivingEntity instanceof PlayerEntity) || !((PlayerEntity) LivingEntity).abilities.invulnerable) && this.paperclip.getMoveControl() instanceof PaperclipMovementController;
 			}
 		}
 

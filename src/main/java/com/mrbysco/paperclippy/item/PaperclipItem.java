@@ -24,8 +24,6 @@ import net.minecraftforge.common.util.FakePlayer;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import net.minecraft.item.Item.Properties;
-
 public class PaperclipItem extends Item {
 	public PaperclipItem(Properties properties) {
 		super(properties);
@@ -34,24 +32,24 @@ public class PaperclipItem extends Item {
 	@Override
 	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
 		ItemStack itemstack = playerIn.getItemInHand(handIn);
-		RayTraceResult raytraceresult = this.getPlayerPOVHitResult(worldIn, playerIn, FluidMode.NONE);
-		ActionResult<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onBucketUse(playerIn, worldIn, itemstack, raytraceresult);
+		RayTraceResult traceResult = getPlayerPOVHitResult(worldIn, playerIn, FluidMode.NONE);
+		ActionResult<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onBucketUse(playerIn, worldIn, itemstack, traceResult);
 		if (ret != null) return ret;
 
-		if (raytraceresult == null) {
+		if (traceResult == null) {
 			return new ActionResult<>(ActionResultType.PASS, itemstack);
-		} else if (raytraceresult.getType() != Type.BLOCK) {
+		} else if (traceResult.getType() != Type.BLOCK) {
 			return new ActionResult<>(ActionResultType.PASS, itemstack);
 		} else {
-			BlockRayTraceResult traceResult = (BlockRayTraceResult)raytraceresult;
-			BlockPos blockpos = traceResult.getBlockPos();
-			PaperclipEntity clippy = PaperRegistry.PAPERCLIPPY.get().create(worldIn);
-			if(clippy != null) {
-				clippy.teleportTo(blockpos.getX(), blockpos.getY() + 1, blockpos.getZ());
+			BlockRayTraceResult blockTraceResult = (BlockRayTraceResult)traceResult;
+			BlockPos blockpos = blockTraceResult.getBlockPos();
+			PaperclipEntity paperClippy = PaperRegistry.PAPERCLIPPY.get().create(worldIn);
+			if(paperClippy != null) {
+				paperClippy.teleportTo(blockpos.getX(), blockpos.getY() + 1, blockpos.getZ());
 				if(!(playerIn instanceof FakePlayer)) {
-					clippy.setOwnerId(playerIn.getUUID());
+					paperClippy.setOwnerId(playerIn.getUUID());
 				}
-				worldIn.addFreshEntity(clippy);
+				worldIn.addFreshEntity(paperClippy);
 			}
 
 			if (!playerIn.isCreative()) {
