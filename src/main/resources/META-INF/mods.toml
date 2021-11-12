@@ -1,0 +1,14 @@
+modLoader="javafml"
+loaderVersion="[36,)"
+issueTrackerURL="https://github.com/Mrbysco/Paperclippy"
+license="MIT"
+
+[[mods]]
+modId="paperclippy"
+version="${file.jarVersion}"
+displayName="Paperclippy"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/paperclippy"
+authors="Mrbysco"
+description='''
+Paperclippy is helpful paperclip that follows you around and gives tips.
+'''

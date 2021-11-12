@@ -1,0 +1,9 @@
+{
+   "paperclippy.jump" : {
+	"subtitle": "paperclippy.subtitle.paperclippy.jump",
+    "category" : "neutral",
+        "sounds": [
+            "paperclippy:boing"
+        ]
+   }
+}
