@@ -1,7 +1,7 @@
 package com.mrbysco.paperclippy.entity;
 
+import com.mrbysco.paperclippy.clickevent.FightClickEvent;
 import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
-import com.mrbysco.paperclippy.event.FightClickEvent;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.CreatureEntity;
@@ -26,7 +26,6 @@ import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.management.PreYggdrasilConverter;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.Util;
@@ -55,7 +54,7 @@ public class PaperclipEntity extends CreatureEntity {
 	public float prevJumpFactor;
 	private boolean wasOnGround;
 
-	private int tipCooldown;
+	public int tipCooldown;
 	private int lastHurtMessageTime;
 
 	public PaperclipEntity(EntityType<? extends PaperclipEntity> entityType, World worldIn) {
@@ -103,23 +102,14 @@ public class PaperclipEntity extends CreatureEntity {
 				if(owner instanceof PlayerEntity) {
 					PlayerEntity player = (PlayerEntity)owner;
 
-					boolean recentlyAttacked = (player.tickCount - player.getLastHurtMobTimestamp()) < 200;
-					boolean containerOpen = player.containerMenu.menuType != null;
-					if(containerOpen) {
-						ResourceLocation registryName = player.containerMenu.menuType.getRegistryName();
-						if(registryName != null && registryName.toString().equals("minecraft:crafting")) {
-							System.out.println(player.containerMenu.getItems());
-						}
-					}
-
+					boolean recentlyAttacked = player.getLastHurtMob() != null && (player.tickCount - player.getLastHurtMobTimestamp()) < 200;
 					if(recentlyAttacked) {
-						String name = getName().getString();
 						IFormattableTextComponent baseComponent = getBaseChatComponent();
 						IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.fighting").withStyle(TextFormatting.WHITE);
 						IFormattableTextComponent yesComponent = new StringTextComponent("Yes");
 						yesComponent.setStyle(textComponent.getStyle()
 								.withClickEvent(new FightClickEvent("/tellraw @a [\"\",{\"text\":\"" + getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
-										I18n.get("paperclippy.line.accept") + "\\\"}]", this)));
+										I18n.get("paperclippy.line.accept") + "\"}]", this)));
 						yesComponent.withStyle(TextFormatting.GREEN);
 						IFormattableTextComponent betweenComponent = new StringTextComponent(", ");
 						IFormattableTextComponent noComponent = new StringTextComponent("No");
@@ -176,11 +166,11 @@ public class PaperclipEntity extends CreatureEntity {
 		return null;
 	}
 
-	protected String getChatName() {
-		return "<" + getName() + ">";
+	public String getChatName() {
+		return "<" + getName().getString() + ">";
 	}
 
-	protected IFormattableTextComponent getBaseChatComponent() {
+	public IFormattableTextComponent getBaseChatComponent() {
 		return new StringTextComponent(getChatName() + " ").withStyle(TextFormatting.YELLOW);
 	}
 

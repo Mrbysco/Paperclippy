@@ -14,6 +14,7 @@
     "_comment": "Sentences",
     "paperclippy.line.hurt": "It looks like I'm getting hurt",
     "paperclippy.line.fighting": "It looks like you're fighting, need help? ",
+    "paperclippy.line.crafting": "It looks like you're crafting, need help? ",
     "paperclippy.line.death": "It looks like I turned back into an item",
 
     "paperclippy.line.accept": "Ok, here I go",
