@@ -10,9 +10,9 @@ import com.mrbysco.paperclippy.datagen.server.PaperRecipeProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class PaperDatagen {
@@ -22,20 +22,20 @@ public class PaperDatagen {
 		ExistingFileHelper helper = event.getExistingFileHelper();
 
 		if (event.includeServer()) {
-			generator.addProvider(new PaperRecipeProvider(generator));
-			generator.addProvider(new PaperLootProvider(generator));
+			generator.addProvider(true, new PaperRecipeProvider(generator));
+			generator.addProvider(true, new PaperLootProvider(generator));
 			BlockTagsProvider provider = new BlockTagsProvider(generator, PaperClippyMod.MOD_ID, helper) {
 				@Override
 				protected void addTags() {
 				}
 			};
-			generator.addProvider(provider);
-			generator.addProvider(new PaperItemTagProvider(generator, provider, helper));
+			generator.addProvider(true, provider);
+			generator.addProvider(true, new PaperItemTagProvider(generator, provider, helper));
 		}
 		if (event.includeClient()) {
-			generator.addProvider(new PaperLanguageProvider(generator));
-			generator.addProvider(new PaperSoundProvider(generator, helper));
-			generator.addProvider(new PaperItemModelProvider(generator, helper));
+			generator.addProvider(true, new PaperLanguageProvider(generator));
+			generator.addProvider(true, new PaperSoundProvider(generator, helper));
+			generator.addProvider(true, new PaperItemModelProvider(generator, helper));
 		}
 	}
 }

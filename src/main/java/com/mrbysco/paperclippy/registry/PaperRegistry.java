@@ -16,12 +16,12 @@ import net.minecraftforge.registries.RegistryObject;
 
 public class PaperRegistry {
 	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, PaperClippyMod.MOD_ID);
-	public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, PaperClippyMod.MOD_ID);
+	public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, PaperClippyMod.MOD_ID);
 	public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, PaperClippyMod.MOD_ID);
 
 	public static final RegistryObject<Item> PAPER_CLIP = ITEMS.register("paper_clip", () -> new PaperclipItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC).stacksTo(1)));
 
-	public static final RegistryObject<EntityType<Paperclip>> PAPERCLIPPY = ENTITIES.register("paperclippy", () ->
+	public static final RegistryObject<EntityType<Paperclip>> PAPERCLIPPY = ENTITY_TYPES.register("paperclippy", () ->
 			EntityType.Builder.<Paperclip>of(Paperclip::new, MobCategory.AMBIENT)
 					.sized(0.7F, 1.95F)
 					.clientTrackingRange(10)

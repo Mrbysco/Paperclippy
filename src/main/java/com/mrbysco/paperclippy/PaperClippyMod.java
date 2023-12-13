@@ -27,7 +27,7 @@ public class PaperClippyMod {
 		IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
 		PaperRegistry.ITEMS.register(eventBus);
-		PaperRegistry.ENTITIES.register(eventBus);
+		PaperRegistry.ENTITY_TYPES.register(eventBus);
 		PaperRegistry.SOUND_EVENTS.register(eventBus);
 
 		eventBus.addListener(PaperRegistry::registerEntityAttributes);

@@ -6,7 +6,6 @@ import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleOptions;
@@ -14,9 +13,8 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.ClickEvent.Action;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -125,21 +123,21 @@ public class Paperclip extends PathfinderMob {
 					boolean recentlyAttacked = player.getLastHurtMob() != null && (player.tickCount - player.getLastHurtMobTimestamp()) < 200;
 					if (recentlyAttacked && !(player.getLastHurtByMob() instanceof Paperclip)) {
 						MutableComponent baseComponent = getBaseChatComponent();
-						MutableComponent textComponent = new TranslatableComponent("paperclippy.line.fighting").withStyle(ChatFormatting.WHITE);
-						MutableComponent yesComponent = new TextComponent("Yes");
+						MutableComponent textComponent = Component.translatable("paperclippy.line.fighting").withStyle(ChatFormatting.WHITE);
+						MutableComponent yesComponent = Component.literal("Yes");
 						yesComponent.setStyle(textComponent.getStyle()
 								.withClickEvent(new FightClickEvent("/tellraw @a [\"\",{\"text\":\"" + getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
 										I18n.get("paperclippy.line.accept") + "\"}]", this)));
 						yesComponent.withStyle(ChatFormatting.GREEN);
-						MutableComponent betweenComponent = new TextComponent(", ");
-						MutableComponent noComponent = new TextComponent("No");
+						MutableComponent betweenComponent = Component.literal(", ");
+						MutableComponent noComponent = Component.literal("No");
 						noComponent.setStyle(textComponent.getStyle()
 								.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/tellraw @a [\"\",{\"text\":\"" + getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
 										I18n.get("paperclippy.line.decline") + "\"}]")));
 						noComponent.withStyle(ChatFormatting.RED);
 						baseComponent.append(textComponent).append(yesComponent).append(betweenComponent).append(noComponent);
 
-						player.sendMessage(baseComponent, Util.NIL_UUID);
+						player.sendSystemMessage(baseComponent);
 					}
 				}
 			}
@@ -165,9 +163,9 @@ public class Paperclip extends PathfinderMob {
 		if (owner instanceof Player player && !level.isClientSide && (this.lastHurtMessageTime == 0 || (this.tickCount - this.lastHurtMessageTime) > 100)) {
 			this.lastHurtMessageTime = this.tickCount;
 			MutableComponent baseComponent = getBaseChatComponent();
-			MutableComponent textComponent = new TranslatableComponent("paperclippy.line.hurt").withStyle(ChatFormatting.WHITE);
+			MutableComponent textComponent = Component.translatable("paperclippy.line.hurt").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
-			player.sendMessage(baseComponent, Util.NIL_UUID);
+			player.sendSystemMessage(baseComponent);
 		}
 		return null;
 	}
@@ -177,9 +175,9 @@ public class Paperclip extends PathfinderMob {
 		LivingEntity owner = getOwner();
 		if (owner instanceof Player player && !level.isClientSide) {
 			MutableComponent baseComponent = getBaseChatComponent();
-			MutableComponent textComponent = new TranslatableComponent("paperclippy.line.death").withStyle(ChatFormatting.WHITE);
+			MutableComponent textComponent = Component.translatable("paperclippy.line.death").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
-			player.sendMessage(baseComponent, Util.NIL_UUID);
+			player.sendSystemMessage(baseComponent);
 		}
 		return null;
 	}
@@ -189,7 +187,7 @@ public class Paperclip extends PathfinderMob {
 	}
 
 	public MutableComponent getBaseChatComponent() {
-		return new TextComponent(getChatName() + " ").withStyle(ChatFormatting.YELLOW);
+		return Component.literal(getChatName() + " ").withStyle(ChatFormatting.YELLOW);
 	}
 
 	@Nullable
@@ -349,8 +347,8 @@ public class Paperclip extends PathfinderMob {
 									item.setItem(stack);
 								} else {
 									ItemStack stack = item.getItem();
-									if (stack.hasContainerItem()) {
-										item.setItem(stack.getContainerItem().copy());
+									if (stack.getItem().hasCraftingRemainingItem()) {
+										item.setItem(stack.getCraftingRemainingItem().copy());
 
 										if (stack.is(Items.MILK_BUCKET) && random.nextDouble() < 0.3D) {
 											ITagManager<Item> tagManager = ForgeRegistries.ITEMS.tags();

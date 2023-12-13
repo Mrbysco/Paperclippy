@@ -1,15 +1,15 @@
 {
-  "paperclippy.jump": {
-    "subtitle": "paperclippy.subtitle.paperclippy.jump",
-    "sounds": [
-      "paperclippy:boing"
-    ]
-  },
   "paperclippy.attack": {
-    "subtitle": "paperclippy.subtitle.paperclippy.attack",
     "sounds": [
       "mob/slime/attack1",
       "mob/slime/attack2"
-    ]
+    ],
+    "subtitle": "paperclippy.subtitle.paperclippy.attack"
+  },
+  "paperclippy.jump": {
+    "sounds": [
+      "paperclippy:boing"
+    ],
+    "subtitle": "paperclippy.subtitle.paperclippy.jump"
   }
 }

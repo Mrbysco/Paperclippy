@@ -2,8 +2,8 @@ package com.mrbysco.paperclippy.datagen.server;
 
 import com.google.gson.JsonObject;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.data.HashCache;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
@@ -31,7 +31,7 @@ public class PaperRecipeProvider extends RecipeProvider {
 	}
 
 	@Override
-	protected void saveAdvancement(HashCache cache, JsonObject p_126015_, Path path) {
+	protected void saveAdvancement(CachedOutput cachedOutput, JsonObject jsonObject, Path path) {
 
 	}
 }

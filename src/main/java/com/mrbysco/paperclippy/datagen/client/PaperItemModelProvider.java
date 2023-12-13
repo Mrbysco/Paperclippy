@@ -4,7 +4,6 @@ import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
@@ -16,11 +15,10 @@ public class PaperItemModelProvider extends ItemModelProvider {
 
 	@Override
 	protected void registerModels() {
-		this.generatedItem(PaperRegistry.PAPER_CLIP.get());
+		this.generatedItem(PaperRegistry.PAPER_CLIP.getId());
 	}
 
-	private void generatedItem(Item item) {
-		ResourceLocation location = item.getRegistryName();
+	private void generatedItem(ResourceLocation location) {
 		singleTexture(location.getPath(), new ResourceLocation("item/generated"),
 				"layer0", new ResourceLocation(PaperClippyMod.MOD_ID, "item/" + location.getPath()));
 	}

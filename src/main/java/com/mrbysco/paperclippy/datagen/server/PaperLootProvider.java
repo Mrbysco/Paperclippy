@@ -48,7 +48,7 @@ public class PaperLootProvider extends LootTableProvider {
 
 		@Override
 		protected Iterable<EntityType<?>> getKnownEntities() {
-			Stream<EntityType<?>> entities = PaperRegistry.ENTITIES.getEntries().stream().map(RegistryObject::get);
+			Stream<EntityType<?>> entities = PaperRegistry.ENTITY_TYPES.getEntries().stream().map(RegistryObject::get);
 			return (Iterable<EntityType<?>>) entities::iterator;
 		}
 	}
