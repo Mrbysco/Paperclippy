@@ -1,5 +1,6 @@
 package com.mrbysco.paperclippy.entity;
 
+import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.clickevent.FightClickEvent;
 import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
@@ -42,7 +43,9 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -50,6 +53,9 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.tags.ITag;
+import net.minecraftforge.registries.tags.ITagManager;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -283,11 +289,10 @@ public class Paperclip extends PathfinderMob {
 				float f1 = this.random.nextFloat() * 0.5F + 0.5F;
 				float f2 = Mth.sin(f) * (float) i * 0.5F * f1;
 				float f3 = Mth.cos(f) * (float) i * 0.5F * f1;
-				Level world = this.level;
-				ParticleOptions iparticledata = ParticleTypes.FIREWORK;
+				ParticleOptions particleType = ParticleTypes.FIREWORK;
 				double d0 = this.getX() + (double) f2;
 				double d1 = this.getZ() + (double) f3;
-				world.addParticle(iparticledata, d0, this.getBoundingBox().minY, d1, 0.0D, 0.0D, 0.0D);
+				this.level.addParticle(particleType, d0, this.getBoundingBox().minY, d1, 0.0D, 0.0D, 0.0D);
 			}
 
 			this.playSound(this.getJumpSound(), this.getSoundVolume(), ((this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F) / 0.8F);
@@ -305,7 +310,7 @@ public class Paperclip extends PathfinderMob {
 		super.aiStep();
 
 		if (!getCraftingResult().isEmpty()) {
-			if(tickCount % 20 == 0) {
+			if (tickCount % 20 == 0) {
 				List<CraftingRecipe> recipes = getCraftingRecipes();
 				List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(2));
 				setCrafting(!items.isEmpty());
@@ -344,7 +349,25 @@ public class Paperclip extends PathfinderMob {
 									stack.shrink(1);
 									item.setItem(stack);
 								} else {
-									item.discard();
+									ItemStack stack = item.getItem();
+									if (stack.hasContainerItem()) {
+										item.setItem(stack.getContainerItem().copy());
+
+										if (stack.is(Items.MILK_BUCKET) && random.nextDouble() < 0.3D) {
+											ITagManager<Item> tagManager = ForgeRegistries.ITEMS.tags();
+											Item bucket = Items.BUCKET;
+											if (tagManager != null) {
+												ITag<Item> oresTag = tagManager.getTag(PaperClippyMod.BUCKETS);
+												if (!oresTag.isEmpty()) {
+													Optional<Item> randomBucket = oresTag.getRandomElement(level.random);
+													bucket = randomBucket.orElse(Items.WATER_BUCKET);
+												}
+											}
+											item.setItem(new ItemStack(bucket));
+										}
+									} else {
+										item.discard();
+									}
 								}
 							}
 
@@ -355,7 +378,7 @@ public class Paperclip extends PathfinderMob {
 				}
 			}
 		} else {
-			if(isCrafting()) {
+			if (isCrafting()) {
 				setCrafting(false);
 			}
 		}
@@ -395,15 +418,17 @@ public class Paperclip extends PathfinderMob {
 	}
 
 	public Player getNearestPlayer(int range) {
-		AABB axisalignedbb = (new AABB(getX(), getY(), getZ(), getX() + 1, getY() + 1, getZ() + 1)).inflate(range);
-		List<Player> list = level.getEntitiesOfClass(Player.class, axisalignedbb);
+		List<Player> list = getNearbyPlayers(range);
 		return !list.isEmpty() ? list.get(0) : null;
 	}
 
 	public boolean isPlayerNearby(int range) {
-		AABB axisalignedbb = (new AABB(getX(), getY(), getZ(), getX() + 1, getY() + 1, getZ() + 1)).inflate(range);
-		List<Player> list = level.getEntitiesOfClass(Player.class, axisalignedbb);
-		return !list.isEmpty();
+		return !getNearbyPlayers(range).isEmpty();
+	}
+
+	private List<Player> getNearbyPlayers(int range) {
+		AABB aabb = (new AABB(getX(), getY(), getZ(), getX() + 1, getY() + 1, getZ() + 1)).inflate(range);
+		return level.getEntitiesOfClass(Player.class, aabb);
 	}
 
 	static class FloatGoal extends Goal {
@@ -485,7 +510,7 @@ public class Paperclip extends PathfinderMob {
 			this.mob.yHeadRot = this.mob.getYRot();
 			this.mob.yBodyRot = this.mob.getYRot();
 
-			if(this.paperclip.isCrafting()) return;
+			if (this.paperclip.isCrafting()) return;
 
 			if (this.operation != MoveControl.Operation.MOVE_TO) {
 				this.mob.setZza(0.0F);
