@@ -6,9 +6,11 @@ import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
@@ -31,6 +33,7 @@ public class PaperClippyMod {
 		PaperRegistry.SOUND_EVENTS.register(eventBus);
 
 		eventBus.addListener(PaperRegistry::registerEntityAttributes);
+		eventBus.addListener(this::addTabContents);
 
 		MinecraftForge.EVENT_BUS.register(new CraftingHandler());
 
@@ -38,5 +41,10 @@ public class PaperClippyMod {
 			eventBus.addListener(ClientHandler::registerEntityRenders);
 			eventBus.addListener(ClientHandler::registerLayerDefinitions);
 		});
+	}
+	private void addTabContents(final BuildCreativeModeTabContentsEvent event) {
+		if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
+			event.accept(PaperRegistry.PAPER_CLIP);
+		}
 	}
 }

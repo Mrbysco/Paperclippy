@@ -28,7 +28,7 @@ public class FollowPlayerGoal extends Goal {
 
 	public FollowPlayerGoal(Paperclip paperclipIn, double followSpeedIn, float minDistIn, float maxDistIn) {
 		this.paperclip = paperclipIn;
-		this.levelReader = paperclipIn.level;
+		this.levelReader = paperclipIn.level();
 		this.followSpeed = followSpeedIn;
 		this.navigator = paperclipIn.getNavigation();
 		this.minDist = minDistIn;

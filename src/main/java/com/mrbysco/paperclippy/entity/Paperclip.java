@@ -115,7 +115,7 @@ public class Paperclip extends PathfinderMob {
 
 	@Override
 	protected SoundEvent getAmbientSound() {
-		if (!this.dead && !this.level.isClientSide) {
+		if (!this.dead && !this.level().isClientSide) {
 			if (this.tipCooldown == 0) {
 				this.tipCooldown = 200;
 				LivingEntity owner = getOwner();
@@ -150,7 +150,7 @@ public class Paperclip extends PathfinderMob {
 		super.doPush(entityIn);
 		LivingEntity target = this.getTarget();
 		if (this.isAlive() && target != null && target != this && target == entityIn) {
-			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.hasLineOfSight(entityIn) && entityIn.hurt(DamageSource.mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
+			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.hasLineOfSight(entityIn) && entityIn.hurt(damageSources().mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
 				this.playSound(PaperRegistry.PAPERCLIP_ATTACK.get(), 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
 				this.doEnchantDamageEffects(this, entityIn);
 			}
@@ -160,7 +160,7 @@ public class Paperclip extends PathfinderMob {
 	@Override
 	protected SoundEvent getHurtSound(DamageSource source) {
 		LivingEntity owner = getOwner();
-		if (owner instanceof Player player && !level.isClientSide && (this.lastHurtMessageTime == 0 || (this.tickCount - this.lastHurtMessageTime) > 100)) {
+		if (owner instanceof Player player && !this.level().isClientSide && (this.lastHurtMessageTime == 0 || (this.tickCount - this.lastHurtMessageTime) > 100)) {
 			this.lastHurtMessageTime = this.tickCount;
 			MutableComponent baseComponent = getBaseChatComponent();
 			MutableComponent textComponent = Component.translatable("paperclippy.line.hurt").withStyle(ChatFormatting.WHITE);
@@ -173,7 +173,7 @@ public class Paperclip extends PathfinderMob {
 	@Override
 	protected SoundEvent getDeathSound() {
 		LivingEntity owner = getOwner();
-		if (owner instanceof Player player && !level.isClientSide) {
+		if (owner instanceof Player player && !this.level().isClientSide) {
 			MutableComponent baseComponent = getBaseChatComponent();
 			MutableComponent textComponent = Component.translatable("paperclippy.line.death").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
@@ -203,7 +203,7 @@ public class Paperclip extends PathfinderMob {
 	public LivingEntity getOwner() {
 		try {
 			UUID uuid = this.getOwnerId();
-			return uuid == null ? null : this.level.getPlayerByUUID(uuid);
+			return uuid == null ? null : this.level().getPlayerByUUID(uuid);
 		} catch (IllegalArgumentException illegalargumentexception) {
 			return null;
 		}
@@ -279,7 +279,7 @@ public class Paperclip extends PathfinderMob {
 		this.prevJumpFactor = this.jumpFactor;
 		super.tick();
 
-		if (this.onGround && !this.wasOnGround) {
+		if (this.onGround() && !this.wasOnGround) {
 			int i = 2;
 			for (int j = 0; j < i * 8; ++j) {
 				float f = this.random.nextFloat() * ((float) Math.PI * 2F);
@@ -289,16 +289,16 @@ public class Paperclip extends PathfinderMob {
 				ParticleOptions particleType = ParticleTypes.FIREWORK;
 				double d0 = this.getX() + (double) f2;
 				double d1 = this.getZ() + (double) f3;
-				this.level.addParticle(particleType, d0, this.getBoundingBox().minY, d1, 0.0D, 0.0D, 0.0D);
+				this.level().addParticle(particleType, d0, this.getBoundingBox().minY, d1, 0.0D, 0.0D, 0.0D);
 			}
 
 			this.playSound(this.getJumpSound(), this.getSoundVolume(), ((this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F) / 0.8F);
 			this.jumpAmount = -0.5F;
-		} else if (!this.onGround && this.wasOnGround) {
+		} else if (!this.onGround() && this.wasOnGround) {
 			this.jumpAmount = 1.0F;
 		}
 
-		this.wasOnGround = this.onGround;
+		this.wasOnGround = this.onGround();
 		this.alterJumpAmount();
 	}
 
@@ -309,12 +309,12 @@ public class Paperclip extends PathfinderMob {
 		if (!getCraftingResult().isEmpty()) {
 			if (tickCount % 20 == 0) {
 				List<CraftingRecipe> recipes = getCraftingRecipes();
-				List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(2));
+				List<ItemEntity> items = this.level().getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(2));
 				setCrafting(!items.isEmpty());
 
 				System.out.println(isCrafting());
 
-				List<ItemStack> stacks = items.stream().map(ItemEntity::getItem).filter(stack -> !ItemStack.isSame(stack, getCraftingResult())).toList();
+				List<ItemStack> stacks = items.stream().map(ItemEntity::getItem).filter(stack -> !ItemStack.isSameItem(stack, getCraftingResult())).toList();
 				if (items.isEmpty()) return;
 
 				Container inventory = new SimpleContainer(stacks.toArray(new ItemStack[0]));
@@ -338,7 +338,13 @@ public class Paperclip extends PathfinderMob {
 					}
 
 					if (i == ingredients.size() && (isSimple ? stackedcontents.canCraft(recipe, (IntList) null) : net.minecraftforge.common.util.RecipeMatcher.findMatches(inputs, ingredients) != null)) {
-						ItemStack result = recipe.assemble(null);
+						ItemStack result;
+						try {
+							result = recipe.assemble(null, this.level().registryAccess());
+						} catch (Exception e) {
+							result = recipe.getResultItem(this.level().registryAccess());
+						}
+
 						if (!result.isEmpty()) {
 							for (ItemEntity item : items) {
 								if (item.getItem().getCount() > 1) {
@@ -348,19 +354,19 @@ public class Paperclip extends PathfinderMob {
 								} else {
 									ItemStack stack = item.getItem();
 									if (stack.getItem().hasCraftingRemainingItem()) {
-										item.setItem(stack.getCraftingRemainingItem().copy());
-
 										if (stack.is(Items.MILK_BUCKET) && random.nextDouble() < 0.3D) {
 											ITagManager<Item> tagManager = ForgeRegistries.ITEMS.tags();
 											Item bucket = Items.BUCKET;
 											if (tagManager != null) {
 												ITag<Item> oresTag = tagManager.getTag(PaperClippyMod.BUCKETS);
 												if (!oresTag.isEmpty()) {
-													Optional<Item> randomBucket = oresTag.getRandomElement(level.random);
+													Optional<Item> randomBucket = oresTag.getRandomElement(this.level().random);
 													bucket = randomBucket.orElse(Items.WATER_BUCKET);
 												}
 											}
 											item.setItem(new ItemStack(bucket));
+										} else {
+											item.setItem(stack.getCraftingRemainingItem().copy());
 										}
 									} else {
 										item.discard();
@@ -368,8 +374,8 @@ public class Paperclip extends PathfinderMob {
 								}
 							}
 
-							ItemEntity itementity = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), result);
-							this.level.addFreshEntity(itementity);
+							ItemEntity itementity = new ItemEntity(this.level(), this.getX(), this.getY(), this.getZ(), result);
+							this.level().addFreshEntity(itementity);
 						}
 					}
 				}
@@ -388,8 +394,8 @@ public class Paperclip extends PathfinderMob {
 			return new ArrayList<>();
 		}
 		if (cachedRecipes.isEmpty())
-			cachedRecipes.addAll(level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING).stream()
-					.filter(recipe -> recipe.getResultItem().sameItem(getCraftingResult())).toList());
+			cachedRecipes.addAll(this.level().getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING).stream()
+					.filter(recipe -> ItemStack.isSameItem(recipe.getResultItem(this.level().registryAccess()), getCraftingResult())).toList());
 		return cachedRecipes;
 	}
 
@@ -425,7 +431,7 @@ public class Paperclip extends PathfinderMob {
 
 	private List<Player> getNearbyPlayers(int range) {
 		AABB aabb = (new AABB(getX(), getY(), getZ(), getX() + 1, getY() + 1, getZ() + 1)).inflate(range);
-		return level.getEntitiesOfClass(Player.class, aabb);
+		return this.level().getEntitiesOfClass(Player.class, aabb);
 	}
 
 	static class FloatGoal extends Goal {
@@ -513,7 +519,7 @@ public class Paperclip extends PathfinderMob {
 				this.mob.setZza(0.0F);
 			} else {
 				this.operation = MoveControl.Operation.WAIT;
-				if (this.mob.isOnGround()) {
+				if (this.mob.onGround()) {
 					this.mob.setSpeed((float) (this.speedModifier * this.mob.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
 
 					if (this.jumpDelay-- <= 0) {

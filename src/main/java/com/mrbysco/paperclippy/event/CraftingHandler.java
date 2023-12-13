@@ -19,7 +19,7 @@ public class CraftingHandler {
 	@SubscribeEvent
 	public void onItemCrafted(ItemCraftedEvent event) {
 		final Player player = event.getEntity();
-		final Level level = player.getLevel();
+		final Level level = player.level();
 		TargetingConditions clippyPredicate = (TargetingConditions.forCombat()).range(12.0D).selector((livingEntity) ->
 				livingEntity instanceof Paperclip paperclip && paperclip.getOwner() != null && paperclip.getOwner().getUUID().equals(player.getUUID()));
 		Paperclip nearestClippy = level.getNearestEntity(Paperclip.class, clippyPredicate, player, player.getX(), player.getY(), player.getZ(), player.getBoundingBox().inflate(12D));

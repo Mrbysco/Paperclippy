@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "key": {
     "N": {
       "tag": "forge:nuggets/iron"
@@ -14,5 +15,6 @@
   ],
   "result": {
     "item": "paperclippy:paper_clip"
-  }
+  },
+  "show_notification": true
 }

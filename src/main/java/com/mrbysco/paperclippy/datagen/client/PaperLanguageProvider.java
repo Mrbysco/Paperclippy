@@ -3,13 +3,14 @@ package com.mrbysco.paperclippy.datagen.client;
 import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.common.data.LanguageProvider;
 import net.minecraftforge.registries.RegistryObject;
 
 public class PaperLanguageProvider extends LanguageProvider {
-	public PaperLanguageProvider(DataGenerator gen) {
-		super(gen, PaperClippyMod.MOD_ID, "en_us");
+	public PaperLanguageProvider(PackOutput packOutput) {
+		super(packOutput, PaperClippyMod.MOD_ID, "en_us");
 	}
 
 	@Override
