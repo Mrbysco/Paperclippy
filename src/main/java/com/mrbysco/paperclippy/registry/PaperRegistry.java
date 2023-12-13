@@ -27,8 +27,10 @@ public class PaperRegistry {
 					.clientTrackingRange(10)
 					.build("paperclippy"));
 
-	public static final RegistryObject<SoundEvent> BOING = SOUND_EVENTS.register("paperclippy.jump", () ->
+	public static final RegistryObject<SoundEvent> PAPERCLIP_BOING = SOUND_EVENTS.register("paperclippy.jump", () ->
 			new SoundEvent(new ResourceLocation(PaperClippyMod.MOD_ID, "paperclippy.jump")));
+	public static final RegistryObject<SoundEvent> PAPERCLIP_ATTACK = SOUND_EVENTS.register("paperclippy.attack", () ->
+			new SoundEvent(new ResourceLocation(PaperClippyMod.MOD_ID, "paperclippy.attack")));
 
 	public static void registerEntityAttributes(EntityAttributeCreationEvent event) {
 		event.put(PAPERCLIPPY.get(), Paperclip.registerAttributes().build());

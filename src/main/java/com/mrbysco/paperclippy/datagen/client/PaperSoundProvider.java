@@ -15,9 +15,16 @@ public class PaperSoundProvider extends SoundDefinitionsProvider {
 
 	@Override
 	public void registerSounds() {
-		this.add(PaperRegistry.BOING, definition()
-				.subtitle(modSubtitle(PaperRegistry.BOING.getId()))
+		this.add(PaperRegistry.PAPERCLIP_BOING, definition()
+				.subtitle(modSubtitle(PaperRegistry.PAPERCLIP_BOING.getId()))
 				.with(sound(modLoc("boing"))));
+
+		this.add(PaperRegistry.PAPERCLIP_ATTACK, definition()
+				.subtitle(modSubtitle(PaperRegistry.PAPERCLIP_ATTACK.getId()))
+				.with(
+						sound(new ResourceLocation("mob/slime/attack1")),
+						sound(new ResourceLocation("mob/slime/attack2"))
+				));
 	}
 
 	private String modSubtitle(ResourceLocation id) {

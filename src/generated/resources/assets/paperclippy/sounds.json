@@ -4,5 +4,12 @@
     "sounds": [
       "paperclippy:boing"
     ]
+  },
+  "paperclippy.attack": {
+    "subtitle": "paperclippy.subtitle.paperclippy.attack",
+    "sounds": [
+      "mob/slime/attack1",
+      "mob/slime/attack2"
+    ]
   }
 }

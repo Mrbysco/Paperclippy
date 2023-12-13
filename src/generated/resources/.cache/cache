@@ -1,6 +1,6 @@
-69ea78fbfe25bc82141d7861d6560e19dc84c9c6 assets/paperclippy/lang/en_us.json
+8de7df50205ef5a07aa5b8995358f730b550440a assets/paperclippy/lang/en_us.json
 401fd640803764798f49352de2a4f640776dde15 assets/paperclippy/models/item/paper_clip.json
-fa56888f46ff61f5c3b21fc57e8a24ef0d025730 assets/paperclippy/sounds.json
+7412d23bfedddffd48b21dca5281c27d66379db8 assets/paperclippy/sounds.json
 e4889fdeca8d2c5939f929d573ed7992e9854442 data/paperclippy/loot_tables/entities/paperclippy.json
 969fc8ad7894f33e41d62c1e950f951c01972f5c data/paperclippy/recipes/paper_clip.json
 52fffd441c86dbda3cd8a82559bcd46ecf57fa10 data/paperclippy/tags/items/buckets.json

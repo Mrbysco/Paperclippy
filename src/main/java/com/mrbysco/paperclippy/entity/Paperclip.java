@@ -22,7 +22,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.players.OldUsersConverter;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -154,7 +153,7 @@ public class Paperclip extends PathfinderMob {
 		LivingEntity target = this.getTarget();
 		if (this.isAlive() && target != null && target != this && target == entityIn) {
 			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.hasLineOfSight(entityIn) && entityIn.hurt(DamageSource.mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
-				this.playSound(SoundEvents.SLIME_ATTACK, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
+				this.playSound(PaperRegistry.PAPERCLIP_ATTACK.get(), 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
 				this.doEnchantDamageEffects(this, entityIn);
 			}
 		}
@@ -414,7 +413,7 @@ public class Paperclip extends PathfinderMob {
 	}
 
 	protected SoundEvent getJumpSound() {
-		return PaperRegistry.BOING.get();
+		return PaperRegistry.PAPERCLIP_BOING.get();
 	}
 
 	public Player getNearestPlayer(int range) {

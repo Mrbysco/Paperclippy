@@ -17,7 +17,8 @@ public class PaperLanguageProvider extends LanguageProvider {
 		addItem(PaperRegistry.PAPER_CLIP, "PaperClippy");
 		addEntityType(PaperRegistry.PAPERCLIPPY, "PaperClippy");
 
-		addSubtitle(PaperRegistry.BOING, "PaperClippy Jumps");
+		addSubtitle(PaperRegistry.PAPERCLIP_BOING, "PaperClippy Jumps");
+		addSubtitle(PaperRegistry.PAPERCLIP_ATTACK, "PaperClippy Attacks");
 
 		add("paperclippy.paperclip.info", "Need help with that?");
 
