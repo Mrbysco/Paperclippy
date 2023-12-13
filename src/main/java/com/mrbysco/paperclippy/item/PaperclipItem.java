@@ -1,6 +1,5 @@
 package com.mrbysco.paperclippy.item;
 
-import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.entity.Paperclip;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.world.item.TooltipFlag;
@@ -30,10 +29,10 @@ public class PaperclipItem extends Item {
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
+	public InteractionResultHolder<ItemStack> use(Level level, Player playerIn, InteractionHand handIn) {
 		ItemStack itemstack = playerIn.getItemInHand(handIn);
-		HitResult traceResult = getPlayerPOVHitResult(worldIn, playerIn, Fluid.NONE);
-		InteractionResultHolder<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onBucketUse(playerIn, worldIn, itemstack, traceResult);
+		HitResult traceResult = getPlayerPOVHitResult(level, playerIn, Fluid.NONE);
+		InteractionResultHolder<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onBucketUse(playerIn, level, itemstack, traceResult);
 		if (ret != null) return ret;
 
 		if (traceResult == null) {
@@ -43,13 +42,13 @@ public class PaperclipItem extends Item {
 		} else {
 			BlockHitResult blockTraceResult = (BlockHitResult)traceResult;
 			BlockPos blockpos = blockTraceResult.getBlockPos();
-			Paperclip paperClippy = PaperRegistry.PAPERCLIPPY.get().create(worldIn);
+			Paperclip paperClippy = PaperRegistry.PAPERCLIPPY.get().create(level);
 			if(paperClippy != null) {
 				paperClippy.teleportTo(blockpos.getX(), blockpos.getY() + 1, blockpos.getZ());
 				if(!(playerIn instanceof FakePlayer)) {
 					paperClippy.setOwnerId(playerIn.getUUID());
 				}
-				worldIn.addFreshEntity(paperClippy);
+				level.addFreshEntity(paperClippy);
 			}
 
 			if (!playerIn.isCreative()) {
@@ -60,8 +59,8 @@ public class PaperclipItem extends Item {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
-		super.appendHoverText(stack, worldIn, tooltip, flagIn);
+	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flagIn) {
+		super.appendHoverText(stack, level, tooltip, flagIn);
 		tooltip.add(new TranslatableComponent("paperclippy.paperclip.info").withStyle(ChatFormatting.YELLOW));
 	}
 }

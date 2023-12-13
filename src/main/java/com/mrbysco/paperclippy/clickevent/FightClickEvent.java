@@ -7,9 +7,9 @@ import net.minecraft.network.chat.ClickEvent;
 public class FightClickEvent extends ClickEvent {
 	private final Paperclip paperclip;
 
-	public FightClickEvent(String commandValue, Paperclip paperclipIn) {
+	public FightClickEvent(String commandValue, Paperclip paperclip) {
 		super(Action.RUN_COMMAND, commandValue);
-		this.paperclip = paperclipIn;
+		this.paperclip = paperclip;
 	}
 
 	@Override

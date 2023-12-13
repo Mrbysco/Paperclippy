@@ -1,46 +1,59 @@
 package com.mrbysco.paperclippy.entity;
 
+import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.clickevent.FightClickEvent;
 import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
+import it.unimi.dsi.fastutil.ints.IntList;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.ClickEvent.Action;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.players.OldUsersConverter;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.players.OldUsersConverter;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.Util;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.ClickEvent.Action;
+import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +61,8 @@ import java.util.UUID;
 
 public class Paperclip extends PathfinderMob {
 	protected static final EntityDataAccessor<Optional<UUID>> OWNER_UNIQUE_ID = SynchedEntityData.defineId(Paperclip.class, EntityDataSerializers.OPTIONAL_UUID);
+	protected static final EntityDataAccessor<Boolean> CRAFTING = SynchedEntityData.defineId(Paperclip.class, EntityDataSerializers.BOOLEAN);
+	protected static final EntityDataAccessor<ItemStack> CRAFTING_RESULT = SynchedEntityData.defineId(Paperclip.class, EntityDataSerializers.ITEM_STACK);
 
 	public float jumpAmount;
 	public float jumpFactor;
@@ -56,23 +71,26 @@ public class Paperclip extends PathfinderMob {
 
 	public int tipCooldown;
 	private int lastHurtMessageTime;
+	private final List<CraftingRecipe> cachedRecipes = new ArrayList<>();
 
-	public Paperclip(EntityType<? extends Paperclip> entityType, Level worldIn) {
-		super(entityType, worldIn);
+	public Paperclip(EntityType<? extends Paperclip> entityType, Level level) {
+		super(entityType, level);
 		this.moveControl = new PaperclipMovementController(this);
 	}
 
 	protected void defineSynchedData() {
 		super.defineSynchedData();
 		this.entityData.define(OWNER_UNIQUE_ID, Optional.empty());
+		this.entityData.define(CRAFTING, false);
+		this.entityData.define(CRAFTING_RESULT, ItemStack.EMPTY);
 	}
 
 	protected void registerGoals() {
 		this.goalSelector.addGoal(1, new Paperclip.FloatGoal(this));
 		this.goalSelector.addGoal(2, new Paperclip.PaperclipAttackGoal(this));
 		this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
-		this.goalSelector.addGoal(5, new Paperclip.HopGoal(this));
-		this.goalSelector.addGoal(4, new FollowPlayerGoal(this, 1.0D, 10.0F, 2.0F));
+		this.goalSelector.addGoal(3, new FollowPlayerGoal(this, 1.0D, 2.0F, 10.0F));
+		this.goalSelector.addGoal(4, new Paperclip.HopGoal(this));
 		this.goalSelector.addGoal(4, new WaterAvoidingRandomStrollGoal(this, 1.0D));
 		this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
 		this.registerTargetGoals();
@@ -95,15 +113,13 @@ public class Paperclip extends PathfinderMob {
 
 	@Override
 	protected SoundEvent getAmbientSound() {
-		if(!this.dead && !this.level.isClientSide) {
-			if(this.tipCooldown == 0) {
+		if (!this.dead && !this.level.isClientSide) {
+			if (this.tipCooldown == 0) {
 				this.tipCooldown = 200;
 				LivingEntity owner = getOwner();
-				if(owner instanceof Player) {
-					Player player = (Player)owner;
-
+				if (owner instanceof Player player) {
 					boolean recentlyAttacked = player.getLastHurtMob() != null && (player.tickCount - player.getLastHurtMobTimestamp()) < 200;
-					if(recentlyAttacked) {
+					if (recentlyAttacked && !(player.getLastHurtByMob() instanceof Paperclip)) {
 						MutableComponent baseComponent = getBaseChatComponent();
 						MutableComponent textComponent = new TranslatableComponent("paperclippy.line.fighting").withStyle(ChatFormatting.WHITE);
 						MutableComponent yesComponent = new TextComponent("Yes");
@@ -131,8 +147,8 @@ public class Paperclip extends PathfinderMob {
 	protected void doPush(Entity entityIn) {
 		super.doPush(entityIn);
 		LivingEntity target = this.getTarget();
-		if(this.isAlive() && target != null && target != this && target == entityIn) {
-			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.hasLineOfSight(entityIn) && entityIn.hurt(DamageSource.mobAttack(this), (float)this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
+		if (this.isAlive() && target != null && target != this && target == entityIn) {
+			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.hasLineOfSight(entityIn) && entityIn.hurt(DamageSource.mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
 				this.playSound(SoundEvents.SLIME_ATTACK, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
 				this.doEnchantDamageEffects(this, entityIn);
 			}
@@ -142,9 +158,8 @@ public class Paperclip extends PathfinderMob {
 	@Override
 	protected SoundEvent getHurtSound(DamageSource source) {
 		LivingEntity owner = getOwner();
-		if(owner instanceof Player && !level.isClientSide && (this.lastHurtMessageTime == 0 || (this.tickCount - this.lastHurtMessageTime) > 100)) {
+		if (owner instanceof Player player && !level.isClientSide && (this.lastHurtMessageTime == 0 || (this.tickCount - this.lastHurtMessageTime) > 100)) {
 			this.lastHurtMessageTime = this.tickCount;
-			Player player = (Player) owner;
 			MutableComponent baseComponent = getBaseChatComponent();
 			MutableComponent textComponent = new TranslatableComponent("paperclippy.line.hurt").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
@@ -156,8 +171,7 @@ public class Paperclip extends PathfinderMob {
 	@Override
 	protected SoundEvent getDeathSound() {
 		LivingEntity owner = getOwner();
-		if(owner instanceof Player && !level.isClientSide) {
-			Player player = (Player) owner;
+		if (owner instanceof Player player && !level.isClientSide) {
 			MutableComponent baseComponent = getBaseChatComponent();
 			MutableComponent textComponent = new TranslatableComponent("paperclippy.line.death").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
@@ -176,11 +190,11 @@ public class Paperclip extends PathfinderMob {
 
 	@Nullable
 	public UUID getOwnerId() {
-		return this.entityData.get(OWNER_UNIQUE_ID).orElse((UUID)null);
+		return this.entityData.get(OWNER_UNIQUE_ID).orElse((UUID) null);
 	}
 
-	public void setOwnerId(@Nullable UUID p_184754_1_) {
-		this.entityData.set(OWNER_UNIQUE_ID, Optional.ofNullable(p_184754_1_));
+	public void setOwnerId(@Nullable UUID uuid) {
+		this.entityData.set(OWNER_UNIQUE_ID, Optional.ofNullable(uuid));
 	}
 
 	@Nullable
@@ -193,6 +207,22 @@ public class Paperclip extends PathfinderMob {
 		}
 	}
 
+	public ItemStack getCraftingResult() {
+		return this.entityData.get(CRAFTING_RESULT);
+	}
+
+	public void setCraftingResult(ItemStack stack) {
+		this.entityData.set(CRAFTING_RESULT, stack);
+	}
+
+	public boolean isCrafting() {
+		return this.entityData.get(CRAFTING);
+	}
+
+	public void setCrafting(boolean crafting) {
+		this.entityData.set(CRAFTING, crafting);
+	}
+
 	@Override
 	public void addAdditionalSaveData(CompoundTag compound) {
 		super.addAdditionalSaveData(compound);
@@ -202,6 +232,13 @@ public class Paperclip extends PathfinderMob {
 		if (this.getOwnerId() != null) {
 			compound.putUUID("Owner", this.getOwnerId());
 		}
+
+		ItemStack itemstack = getCraftingResult();
+		if (!itemstack.isEmpty()) {
+			compound.put("CraftResult", itemstack.save(new CompoundTag()));
+		}
+
+		compound.putBoolean("Crafting", isCrafting());
 	}
 
 	@Override
@@ -221,11 +258,18 @@ public class Paperclip extends PathfinderMob {
 		if (uuid != null) {
 			this.setOwnerId(uuid);
 		}
+
+		ItemStack itemstack = ItemStack.of(compound.getCompound("CraftResult"));
+		if (!itemstack.isEmpty()) {
+			setCraftingResult(itemstack);
+		}
+
+		setCrafting(compound.getBoolean("Crafting"));
 	}
 
 	@Override
 	public void tick() {
-		if(this.tipCooldown > 0) {
+		if (this.tipCooldown > 0) {
 			this.tipCooldown--;
 		}
 
@@ -235,15 +279,15 @@ public class Paperclip extends PathfinderMob {
 
 		if (this.onGround && !this.wasOnGround) {
 			int i = 2;
-			for(int j = 0; j < i * 8; ++j) {
-				float f = this.random.nextFloat() * ((float)Math.PI * 2F);
+			for (int j = 0; j < i * 8; ++j) {
+				float f = this.random.nextFloat() * ((float) Math.PI * 2F);
 				float f1 = this.random.nextFloat() * 0.5F + 0.5F;
-				float f2 = Mth.sin(f) * (float)i * 0.5F * f1;
-				float f3 = Mth.cos(f) * (float)i * 0.5F * f1;
+				float f2 = Mth.sin(f) * (float) i * 0.5F * f1;
+				float f3 = Mth.cos(f) * (float) i * 0.5F * f1;
 				Level world = this.level;
 				ParticleOptions iparticledata = ParticleTypes.FIREWORK;
-				double d0 = this.getX() + (double)f2;
-				double d1 = this.getZ() + (double)f3;
+				double d0 = this.getX() + (double) f2;
+				double d1 = this.getZ() + (double) f3;
 				world.addParticle(iparticledata, d0, this.getBoundingBox().minY, d1, 0.0D, 0.0D, 0.0D);
 			}
 
@@ -257,13 +301,86 @@ public class Paperclip extends PathfinderMob {
 		this.alterJumpAmount();
 	}
 
+	@Override
+	public void aiStep() {
+		super.aiStep();
+
+		if (!getCraftingResult().isEmpty()) {
+			if(tickCount % 20 == 0) {
+				List<CraftingRecipe> recipes = getCraftingRecipes();
+				List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(2));
+				setCrafting(!items.isEmpty());
+
+				System.out.println(isCrafting());
+
+				List<ItemStack> stacks = items.stream().map(ItemEntity::getItem).filter(stack -> !ItemStack.isSame(stack, getCraftingResult())).toList();
+				if (items.isEmpty()) return;
+
+				Container inventory = new SimpleContainer(stacks.toArray(new ItemStack[0]));
+				for (CraftingRecipe recipe : recipes) {
+					if (recipe instanceof CustomRecipe) continue;
+
+					NonNullList<Ingredient> ingredients = recipe.getIngredients();
+					boolean isSimple = ingredients.stream().allMatch(Ingredient::isSimple);
+					StackedContents stackedcontents = new StackedContents();
+					java.util.List<ItemStack> inputs = new java.util.ArrayList<>();
+					int i = 0;
+
+					for (int j = 0; j < inventory.getContainerSize(); ++j) {
+						ItemStack itemstack = inventory.getItem(j);
+						if (!itemstack.isEmpty()) {
+							++i;
+							if (isSimple)
+								stackedcontents.accountStack(itemstack, 1);
+							else inputs.add(itemstack);
+						}
+					}
+
+					if (i == ingredients.size() && (isSimple ? stackedcontents.canCraft(recipe, (IntList) null) : net.minecraftforge.common.util.RecipeMatcher.findMatches(inputs, ingredients) != null)) {
+						ItemStack result = recipe.assemble(null);
+						if (!result.isEmpty()) {
+							for (ItemEntity item : items) {
+								if (item.getItem().getCount() > 1) {
+									ItemStack stack = item.getItem();
+									stack.shrink(1);
+									item.setItem(stack);
+								} else {
+									item.discard();
+								}
+							}
+
+							ItemEntity itementity = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), result);
+							this.level.addFreshEntity(itementity);
+						}
+					}
+				}
+			}
+		} else {
+			if(isCrafting()) {
+				setCrafting(false);
+			}
+		}
+	}
+
+	private List<CraftingRecipe> getCraftingRecipes() {
+		if (getCraftingResult().isEmpty()) {
+			if (!cachedRecipes.isEmpty())
+				cachedRecipes.clear();
+			return new ArrayList<>();
+		}
+		if (cachedRecipes.isEmpty())
+			cachedRecipes.addAll(level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING).stream()
+					.filter(recipe -> recipe.getResultItem().sameItem(getCraftingResult())).toList());
+		return cachedRecipes;
+	}
+
 	protected void alterJumpAmount() {
 		this.jumpAmount *= 0.6F;
 	}
 
 	protected void jumpFromGround() {
 		Vec3 vec3d = this.getDeltaMovement();
-		this.setDeltaMovement(vec3d.x, (double)0.42F, vec3d.z);
+		this.setDeltaMovement(vec3d.x, (double) 0.42F, vec3d.z);
 		this.hasImpulse = true;
 	}
 
@@ -315,7 +432,7 @@ public class Paperclip extends PathfinderMob {
 				this.paperclip.getJumpControl().jump();
 			}
 
-			((Paperclip.PaperclipMovementController)this.paperclip.getMoveControl()).setSpeed(1.2D);
+			((Paperclip.PaperclipMovementController) this.paperclip.getMoveControl()).setSpeed(1.2D);
 		}
 	}
 
@@ -331,14 +448,14 @@ public class Paperclip extends PathfinderMob {
 		 * Returns whether the EntityAIBase should begin execution.
 		 */
 		public boolean canUse() {
-			return true;
+			return !this.paperclip.isPassenger() && !this.paperclip.isCrafting();
 		}
 
 		/**
 		 * Keep ticking a continuous task that has already been started
 		 */
 		public void tick() {
-			((Paperclip.PaperclipMovementController)this.paperclip.getMoveControl()).setSpeed(1.0D);
+			((Paperclip.PaperclipMovementController) this.paperclip.getMoveControl()).setSpeed(1.0D);
 		}
 	}
 
@@ -351,7 +468,7 @@ public class Paperclip extends PathfinderMob {
 		public PaperclipMovementController(Paperclip paperclipIn) {
 			super(paperclipIn);
 			this.paperclip = paperclipIn;
-			this.yRot = 180.0F * paperclipIn.getYRot() / (float)Math.PI;
+			this.yRot = 180.0F * paperclipIn.getYRot() / (float) Math.PI;
 		}
 
 		public void setDirection(float p_179920_1_, boolean p_179920_2_) {
@@ -369,13 +486,14 @@ public class Paperclip extends PathfinderMob {
 			this.mob.yHeadRot = this.mob.getYRot();
 			this.mob.yBodyRot = this.mob.getYRot();
 
+			if(this.paperclip.isCrafting()) return;
+
 			if (this.operation != MoveControl.Operation.MOVE_TO) {
 				this.mob.setZza(0.0F);
 			} else {
 				this.operation = MoveControl.Operation.WAIT;
-
 				if (this.mob.isOnGround()) {
-					this.mob.setSpeed((float)(this.speedModifier * this.mob.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
+					this.mob.setSpeed((float) (this.speedModifier * this.mob.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
 
 					if (this.jumpDelay-- <= 0) {
 						this.jumpDelay = this.paperclip.getJumpDelay();
@@ -393,7 +511,7 @@ public class Paperclip extends PathfinderMob {
 						this.mob.setSpeed(0.0F);
 					}
 				} else {
-					this.mob.setSpeed((float)(this.speedModifier * this.mob.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
+					this.mob.setSpeed((float) (this.speedModifier * this.mob.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
 				}
 			}
 		}
@@ -440,7 +558,7 @@ public class Paperclip extends PathfinderMob {
 				return false;
 			} else if (!LivingEntity.isAlive()) {
 				return false;
-			} else if (LivingEntity instanceof Player && ((Player)LivingEntity).getAbilities().invulnerable) {
+			} else if (LivingEntity instanceof Player && ((Player) LivingEntity).getAbilities().invulnerable) {
 				return false;
 			} else {
 				return --this.growTieredTimer > 0;
@@ -452,7 +570,7 @@ public class Paperclip extends PathfinderMob {
 		 */
 		public void tick() {
 			this.paperclip.lookAt(this.paperclip.getTarget(), 10.0F, 10.0F);
-			((PaperclipMovementController)this.paperclip.getMoveControl()).setDirection(this.paperclip.getYRot(), true);
+			((PaperclipMovementController) this.paperclip.getMoveControl()).setDirection(this.paperclip.getYRot(), true);
 		}
 	}
 }

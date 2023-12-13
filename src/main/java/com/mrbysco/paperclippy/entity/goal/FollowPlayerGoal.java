@@ -125,8 +125,8 @@ public class FollowPlayerGoal extends Goal {
 	}
 
 	private boolean isTeleportFriendlyBlock(BlockPos pos) {
-		BlockPathTypes pathnodetype = WalkNodeEvaluator.getBlockPathTypeStatic(this.world, pos.mutable());
-		if (pathnodetype != BlockPathTypes.WALKABLE) {
+		BlockPathTypes pathTypes = WalkNodeEvaluator.getBlockPathTypeStatic(this.world, pos.mutable());
+		if (pathTypes != BlockPathTypes.WALKABLE) {
 			return false;
 		} else {
 			BlockState blockstate = this.world.getBlockState(pos.below());

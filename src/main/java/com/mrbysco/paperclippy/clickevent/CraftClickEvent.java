@@ -1,26 +1,22 @@
 package com.mrbysco.paperclippy.clickevent;
 
 import com.mrbysco.paperclippy.entity.Paperclip;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.ClickEvent;
 
 public class CraftClickEvent extends ClickEvent {
 	private final Paperclip paperclip;
-	private final CraftingRecipe recipe;
+	private final ItemStack result;
 
-	public CraftClickEvent(String commandValue, Paperclip paperclipIn, CraftingRecipe recipe) {
+	public CraftClickEvent(String commandValue, Paperclip paperclip, ItemStack result) {
 		super(Action.RUN_COMMAND, commandValue);
-		this.paperclip = paperclipIn;
-		this.recipe = recipe;
+		this.paperclip = paperclip;
+		this.result = result;
 	}
 
 	@Override
 	public String getValue() {
-		LivingEntity owner = paperclip.getOwner();
-		if(owner != null) {
-//			TODO: implement crafting helper
-		}
+		paperclip.setCraftingResult(result);
 		return super.getValue();
 	}
 }

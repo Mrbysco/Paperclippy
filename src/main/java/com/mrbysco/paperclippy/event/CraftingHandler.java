@@ -1,6 +1,6 @@
 package com.mrbysco.paperclippy.event;
 
-import com.mrbysco.paperclippy.clickevent.FightClickEvent;
+import com.mrbysco.paperclippy.clickevent.CraftClickEvent;
 import com.mrbysco.paperclippy.entity.Paperclip;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -22,7 +22,8 @@ public class CraftingHandler {
 	public void worldTick(ItemCraftedEvent event) {
 		final Player player = event.getPlayer();
 		final Level world = player.getCommandSenderWorld();
-		TargetingConditions clippyPredicate = (TargetingConditions.forCombat()).range(12.0D).selector((clippy) -> ((Paperclip) clippy).getOwner().getUUID().equals(player.getUUID()));
+		TargetingConditions clippyPredicate = (TargetingConditions.forCombat()).range(12.0D).selector((livingEntity) ->
+				livingEntity instanceof Paperclip paperclip && paperclip.getOwner() != null && paperclip.getOwner().getUUID().equals(player.getUUID()));
 		Paperclip nearestClippy = world.getNearestEntity(Paperclip.class, clippyPredicate, player, player.getX(), player.getY(), player.getZ(), player.getBoundingBox().inflate(12D));
 		if (!world.isClientSide && nearestClippy != null) {
 			System.out.println("Found a clippy at " + nearestClippy.blockPosition());
@@ -31,8 +32,8 @@ public class CraftingHandler {
 			MutableComponent textComponent = new TranslatableComponent("paperclippy.line.crafting").withStyle(ChatFormatting.WHITE);
 			MutableComponent yesComponent = new TextComponent("Yes");
 			yesComponent.setStyle(textComponent.getStyle()
-					.withClickEvent(new FightClickEvent("/tellraw @a [\"\",{\"text\":\"" + nearestClippy.getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
-							I18n.get("paperclippy.line.accept") + "\"}]", nearestClippy)));
+					.withClickEvent(new CraftClickEvent("/tellraw @a [\"\",{\"text\":\"" + nearestClippy.getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
+							I18n.get("paperclippy.line.accept") + "\"}]", nearestClippy, event.getCrafting().copy())));
 			yesComponent.withStyle(ChatFormatting.GREEN);
 			MutableComponent betweenComponent = new TextComponent(", ");
 			MutableComponent noComponent = new TextComponent("No");
