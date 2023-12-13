@@ -1,8 +1,8 @@
 package com.mrbysco.paperclippy.clickevent;
 
 import com.mrbysco.paperclippy.entity.Paperclip;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.world.item.ItemStack;
 
 public class CraftClickEvent extends ClickEvent {
 	private final Paperclip paperclip;

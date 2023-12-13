@@ -19,13 +19,13 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 public class CraftingHandler {
 
 	@SubscribeEvent
-	public void worldTick(ItemCraftedEvent event) {
+	public void onItemCrafted(ItemCraftedEvent event) {
 		final Player player = event.getPlayer();
-		final Level world = player.getCommandSenderWorld();
+		final Level level = player.getLevel();
 		TargetingConditions clippyPredicate = (TargetingConditions.forCombat()).range(12.0D).selector((livingEntity) ->
 				livingEntity instanceof Paperclip paperclip && paperclip.getOwner() != null && paperclip.getOwner().getUUID().equals(player.getUUID()));
-		Paperclip nearestClippy = world.getNearestEntity(Paperclip.class, clippyPredicate, player, player.getX(), player.getY(), player.getZ(), player.getBoundingBox().inflate(12D));
-		if (!world.isClientSide && nearestClippy != null) {
+		Paperclip nearestClippy = level.getNearestEntity(Paperclip.class, clippyPredicate, player, player.getX(), player.getY(), player.getZ(), player.getBoundingBox().inflate(12D));
+		if (!level.isClientSide && nearestClippy != null) {
 			System.out.println("Found a clippy at " + nearestClippy.blockPosition());
 
 			MutableComponent baseComponent = nearestClippy.getBaseChatComponent();

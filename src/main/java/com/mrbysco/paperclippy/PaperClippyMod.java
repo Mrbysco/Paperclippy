@@ -3,6 +3,10 @@ package com.mrbysco.paperclippy;
 import com.mrbysco.paperclippy.client.ClientHandler;
 import com.mrbysco.paperclippy.event.CraftingHandler;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -14,23 +18,25 @@ import org.apache.logging.log4j.Logger;
 
 @Mod(PaperClippyMod.MOD_ID)
 public class PaperClippyMod {
-    public static final String MOD_ID = "paperclippy";
-    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+	public static final String MOD_ID = "paperclippy";
+	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
-    public PaperClippyMod() {
-        IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
+	public static final TagKey<Item> BUCKETS = ItemTags.create(new ResourceLocation("paperclippy", "buckets"));
 
-        PaperRegistry.ITEMS.register(eventBus);
-        PaperRegistry.ENTITIES.register(eventBus);
-        PaperRegistry.SOUND_EVENTS.register(eventBus);
+	public PaperClippyMod() {
+		IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        eventBus.addListener(PaperRegistry::registerEntityAttributes);
+		PaperRegistry.ITEMS.register(eventBus);
+		PaperRegistry.ENTITIES.register(eventBus);
+		PaperRegistry.SOUND_EVENTS.register(eventBus);
 
-        MinecraftForge.EVENT_BUS.register(new CraftingHandler());
+		eventBus.addListener(PaperRegistry::registerEntityAttributes);
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            eventBus.addListener(ClientHandler::registerEntityRenders);
-            eventBus.addListener(ClientHandler::registerLayerDefinitions);
-        });
-    }
+		MinecraftForge.EVENT_BUS.register(new CraftingHandler());
+
+		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+			eventBus.addListener(ClientHandler::registerEntityRenders);
+			eventBus.addListener(ClientHandler::registerLayerDefinitions);
+		});
+	}
 }

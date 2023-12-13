@@ -1,24 +1,24 @@
 package com.mrbysco.paperclippy.entity.goal;
 
 import com.mrbysco.paperclippy.entity.Paperclip;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.LevelReader;
 
 import java.util.EnumSet;
 
 public class FollowPlayerGoal extends Goal {
 	protected final Paperclip paperclip;
 	private LivingEntity owner;
-	protected final LevelReader world;
+	protected final LevelReader levelReader;
 	private final double followSpeed;
 	private final PathNavigation navigator;
 	private int timeToRecalcPath;
@@ -28,7 +28,7 @@ public class FollowPlayerGoal extends Goal {
 
 	public FollowPlayerGoal(Paperclip paperclipIn, double followSpeedIn, float minDistIn, float maxDistIn) {
 		this.paperclip = paperclipIn;
-		this.world = paperclipIn.level;
+		this.levelReader = paperclipIn.level;
 		this.followSpeed = followSpeedIn;
 		this.navigator = paperclipIn.getNavigation();
 		this.minDist = minDistIn;
@@ -48,7 +48,7 @@ public class FollowPlayerGoal extends Goal {
 			return false;
 		} else if (livingentity.isSpectator()) {
 			return false;
-		} else if (this.paperclip.distanceToSqr(livingentity) < (double)(this.minDist * this.minDist)) {
+		} else if (this.paperclip.distanceToSqr(livingentity) < (double) (this.minDist * this.minDist)) {
 			return false;
 		} else {
 			this.owner = livingentity;
@@ -60,7 +60,7 @@ public class FollowPlayerGoal extends Goal {
 	 * Returns whether an in-progress EntityAIBase should continue executing
 	 */
 	public boolean canContinueToUse() {
-		return !this.navigator.isDone() && !(this.paperclip.distanceToSqr(this.owner) <= (double)(this.maxDist * this.maxDist));
+		return !this.navigator.isDone() && !(this.paperclip.distanceToSqr(this.owner) <= (double) (this.maxDist * this.maxDist));
 	}
 
 	/**
@@ -85,7 +85,7 @@ public class FollowPlayerGoal extends Goal {
 	 * Keep ticking a continuous task that has already been started
 	 */
 	public void tick() {
-		this.paperclip.getLookControl().setLookAt(this.owner, 10.0F, (float)this.paperclip.getMaxHeadXRot());
+		this.paperclip.getLookControl().setLookAt(this.owner, 10.0F, (float) this.paperclip.getMaxHeadXRot());
 		if (--this.timeToRecalcPath <= 0) {
 			this.timeToRecalcPath = 10;
 			if (!this.paperclip.isLeashed() && !this.paperclip.isPassenger()) {
@@ -98,10 +98,11 @@ public class FollowPlayerGoal extends Goal {
 			}
 		}
 	}
+
 	private void tryToTeleportNearEntity() {
 		BlockPos blockpos = this.owner.blockPosition();
 
-		for(int i = 0; i < 10; ++i) {
+		for (int i = 0; i < 10; ++i) {
 			int j = this.getRandomNumber(-3, 3);
 			int k = this.getRandomNumber(-1, 1);
 			int l = this.getRandomNumber(-3, 3);
@@ -113,28 +114,28 @@ public class FollowPlayerGoal extends Goal {
 	}
 
 	private boolean tryToTeleportToLocation(int x, int y, int z) {
-		if (Math.abs((double)x - this.owner.getX()) < 2.0D && Math.abs((double)z - this.owner.getZ()) < 2.0D) {
+		if (Math.abs((double) x - this.owner.getX()) < 2.0D && Math.abs((double) z - this.owner.getZ()) < 2.0D) {
 			return false;
 		} else if (!this.isTeleportFriendlyBlock(new BlockPos(x, y, z))) {
 			return false;
 		} else {
-			this.paperclip.moveTo((double)x + 0.5D, (double)y, (double)z + 0.5D, this.paperclip.getYRot(), this.paperclip.getXRot());
+			this.paperclip.moveTo((double) x + 0.5D, (double) y, (double) z + 0.5D, this.paperclip.getYRot(), this.paperclip.getXRot());
 			this.navigator.stop();
 			return true;
 		}
 	}
 
 	private boolean isTeleportFriendlyBlock(BlockPos pos) {
-		BlockPathTypes pathTypes = WalkNodeEvaluator.getBlockPathTypeStatic(this.world, pos.mutable());
+		BlockPathTypes pathTypes = WalkNodeEvaluator.getBlockPathTypeStatic(this.levelReader, pos.mutable());
 		if (pathTypes != BlockPathTypes.WALKABLE) {
 			return false;
 		} else {
-			BlockState blockstate = this.world.getBlockState(pos.below());
+			BlockState blockstate = this.levelReader.getBlockState(pos.below());
 			if (blockstate.getBlock() instanceof LeavesBlock) { //Don't teleport to leaves
 				return false;
 			} else {
 				BlockPos blockpos = pos.subtract(this.paperclip.blockPosition());
-				return this.world.noCollision(this.paperclip, this.paperclip.getBoundingBox().move(blockpos));
+				return this.levelReader.noCollision(this.paperclip, this.paperclip.getBoundingBox().move(blockpos));
 			}
 		}
 	}

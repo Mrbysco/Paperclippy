@@ -2,22 +2,22 @@ package com.mrbysco.paperclippy.item;
 
 import com.mrbysco.paperclippy.entity.Paperclip;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
-import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.ClipContext.Fluid;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.HitResult.Type;
-import net.minecraft.network.chat.Component;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.FakePlayer;
 
 import javax.annotation.Nullable;
@@ -40,12 +40,12 @@ public class PaperclipItem extends Item {
 		} else if (traceResult.getType() != Type.BLOCK) {
 			return new InteractionResultHolder<>(InteractionResult.PASS, itemstack);
 		} else {
-			BlockHitResult blockTraceResult = (BlockHitResult)traceResult;
+			BlockHitResult blockTraceResult = (BlockHitResult) traceResult;
 			BlockPos blockpos = blockTraceResult.getBlockPos();
 			Paperclip paperClippy = PaperRegistry.PAPERCLIPPY.get().create(level);
-			if(paperClippy != null) {
+			if (paperClippy != null) {
 				paperClippy.teleportTo(blockpos.getX(), blockpos.getY() + 1, blockpos.getZ());
-				if(!(playerIn instanceof FakePlayer)) {
+				if (!(playerIn instanceof FakePlayer)) {
 					paperClippy.setOwnerId(playerIn.getUUID());
 				}
 				level.addFreshEntity(paperClippy);
