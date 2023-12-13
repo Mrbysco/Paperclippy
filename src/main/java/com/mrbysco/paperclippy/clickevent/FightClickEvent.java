@@ -1,13 +1,13 @@
 package com.mrbysco.paperclippy.clickevent;
 
-import com.mrbysco.paperclippy.entity.PaperclipEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.text.event.ClickEvent;
+import com.mrbysco.paperclippy.entity.Paperclip;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.network.chat.ClickEvent;
 
 public class FightClickEvent extends ClickEvent {
-	private final PaperclipEntity paperclip;
+	private final Paperclip paperclip;
 
-	public FightClickEvent(String commandValue, PaperclipEntity paperclipIn) {
+	public FightClickEvent(String commandValue, Paperclip paperclipIn) {
 		super(Action.RUN_COMMAND, commandValue);
 		this.paperclip = paperclipIn;
 	}

@@ -1,12 +1,9 @@
 {
-  "result": {
-    "item": "paperclippy:paper_clip"
-  },
+  "type": "minecraft:crafting_shaped",
   "pattern": [
     "PN",
     "N "
   ],
-  "type": "minecraft:crafting_shaped",
   "key": {
     "P": {
       "item": "minecraft:paper"
@@ -14,5 +11,8 @@
     "N": {
       "tag": "forge:nuggets/iron"
     }
+  },
+  "result": {
+    "item": "paperclippy:paper_clip"
   }
 }

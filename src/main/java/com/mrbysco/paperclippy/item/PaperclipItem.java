@@ -1,24 +1,24 @@
 package com.mrbysco.paperclippy.item;
 
-import com.mrbysco.paperclippy.Reference;
-import com.mrbysco.paperclippy.entity.PaperclipEntity;
+import com.mrbysco.paperclippy.PaperClippyMod;
+import com.mrbysco.paperclippy.entity.Paperclip;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.RayTraceContext.FluidMode;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.RayTraceResult.Type;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.ClipContext.Fluid;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.HitResult.Type;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.FakePlayer;
 
 import javax.annotation.Nullable;
@@ -30,20 +30,20 @@ public class PaperclipItem extends Item {
 	}
 
 	@Override
-	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
+	public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
 		ItemStack itemstack = playerIn.getItemInHand(handIn);
-		RayTraceResult traceResult = getPlayerPOVHitResult(worldIn, playerIn, FluidMode.NONE);
-		ActionResult<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onBucketUse(playerIn, worldIn, itemstack, traceResult);
+		HitResult traceResult = getPlayerPOVHitResult(worldIn, playerIn, Fluid.NONE);
+		InteractionResultHolder<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onBucketUse(playerIn, worldIn, itemstack, traceResult);
 		if (ret != null) return ret;
 
 		if (traceResult == null) {
-			return new ActionResult<>(ActionResultType.PASS, itemstack);
+			return new InteractionResultHolder<>(InteractionResult.PASS, itemstack);
 		} else if (traceResult.getType() != Type.BLOCK) {
-			return new ActionResult<>(ActionResultType.PASS, itemstack);
+			return new InteractionResultHolder<>(InteractionResult.PASS, itemstack);
 		} else {
-			BlockRayTraceResult blockTraceResult = (BlockRayTraceResult)traceResult;
+			BlockHitResult blockTraceResult = (BlockHitResult)traceResult;
 			BlockPos blockpos = blockTraceResult.getBlockPos();
-			PaperclipEntity paperClippy = PaperRegistry.PAPERCLIPPY.get().create(worldIn);
+			Paperclip paperClippy = PaperRegistry.PAPERCLIPPY.get().create(worldIn);
 			if(paperClippy != null) {
 				paperClippy.teleportTo(blockpos.getX(), blockpos.getY() + 1, blockpos.getZ());
 				if(!(playerIn instanceof FakePlayer)) {
@@ -55,13 +55,13 @@ public class PaperclipItem extends Item {
 			if (!playerIn.isCreative()) {
 				itemstack.shrink(1);
 			}
-			return new ActionResult<>(ActionResultType.SUCCESS, itemstack);
+			return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemstack);
 		}
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
+	public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
 		super.appendHoverText(stack, worldIn, tooltip, flagIn);
-		tooltip.add(new TranslationTextComponent(Reference.MOD_ID + ".paperclip.info").withStyle(TextFormatting.YELLOW));
+		tooltip.add(new TranslatableComponent("paperclippy.paperclip.info").withStyle(ChatFormatting.YELLOW));
 	}
 }

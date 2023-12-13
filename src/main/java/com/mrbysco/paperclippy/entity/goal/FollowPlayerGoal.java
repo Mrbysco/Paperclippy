@@ -1,32 +1,32 @@
 package com.mrbysco.paperclippy.entity.goal;
 
-import com.mrbysco.paperclippy.entity.PaperclipEntity;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.LeavesBlock;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.pathfinding.FlyingPathNavigator;
-import net.minecraft.pathfinding.GroundPathNavigator;
-import net.minecraft.pathfinding.PathNavigator;
-import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.pathfinding.WalkNodeProcessor;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
+import com.mrbysco.paperclippy.entity.Paperclip;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelReader;
 
 import java.util.EnumSet;
 
 public class FollowPlayerGoal extends Goal {
-	protected final PaperclipEntity paperclip;
+	protected final Paperclip paperclip;
 	private LivingEntity owner;
-	protected final IWorldReader world;
+	protected final LevelReader world;
 	private final double followSpeed;
-	private final PathNavigator navigator;
+	private final PathNavigation navigator;
 	private int timeToRecalcPath;
 	private final float maxDist;
 	private final float minDist;
 	private float oldWaterCost;
 
-	public FollowPlayerGoal(PaperclipEntity paperclipIn, double followSpeedIn, float minDistIn, float maxDistIn) {
+	public FollowPlayerGoal(Paperclip paperclipIn, double followSpeedIn, float minDistIn, float maxDistIn) {
 		this.paperclip = paperclipIn;
 		this.world = paperclipIn.level;
 		this.followSpeed = followSpeedIn;
@@ -34,7 +34,7 @@ public class FollowPlayerGoal extends Goal {
 		this.minDist = minDistIn;
 		this.maxDist = maxDistIn;
 		this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
-		if (!(paperclipIn.getNavigation() instanceof GroundPathNavigator) && !(paperclipIn.getNavigation() instanceof FlyingPathNavigator)) {
+		if (!(paperclipIn.getNavigation() instanceof GroundPathNavigation) && !(paperclipIn.getNavigation() instanceof FlyingPathNavigation)) {
 			throw new IllegalArgumentException("Unsupported mob type for FollowplayerGoal");
 		}
 	}
@@ -68,8 +68,8 @@ public class FollowPlayerGoal extends Goal {
 	 */
 	public void start() {
 		this.timeToRecalcPath = 0;
-		this.oldWaterCost = this.paperclip.getPathfindingMalus(PathNodeType.WATER);
-		this.paperclip.setPathfindingMalus(PathNodeType.WATER, 0.0F);
+		this.oldWaterCost = this.paperclip.getPathfindingMalus(BlockPathTypes.WATER);
+		this.paperclip.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class FollowPlayerGoal extends Goal {
 	public void stop() {
 		this.owner = null;
 		this.navigator.stop();
-		this.paperclip.setPathfindingMalus(PathNodeType.WATER, this.oldWaterCost);
+		this.paperclip.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterCost);
 	}
 
 	/**
@@ -118,15 +118,15 @@ public class FollowPlayerGoal extends Goal {
 		} else if (!this.isTeleportFriendlyBlock(new BlockPos(x, y, z))) {
 			return false;
 		} else {
-			this.paperclip.moveTo((double)x + 0.5D, (double)y, (double)z + 0.5D, this.paperclip.yRot, this.paperclip.xRot);
+			this.paperclip.moveTo((double)x + 0.5D, (double)y, (double)z + 0.5D, this.paperclip.getYRot(), this.paperclip.getXRot());
 			this.navigator.stop();
 			return true;
 		}
 	}
 
 	private boolean isTeleportFriendlyBlock(BlockPos pos) {
-		PathNodeType pathnodetype = WalkNodeProcessor.getBlockPathTypeStatic(this.world, pos.mutable());
-		if (pathnodetype != PathNodeType.WALKABLE) {
+		BlockPathTypes pathnodetype = WalkNodeEvaluator.getBlockPathTypeStatic(this.world, pos.mutable());
+		if (pathnodetype != BlockPathTypes.WALKABLE) {
 			return false;
 		} else {
 			BlockState blockstate = this.world.getBlockState(pos.below());

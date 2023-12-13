@@ -3,42 +3,42 @@ package com.mrbysco.paperclippy.entity;
 import com.mrbysco.paperclippy.clickevent.FightClickEvent;
 import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.CreatureEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.ai.attributes.AttributeModifierMap;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.controller.MovementController;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.goal.HurtByTargetGoal;
-import net.minecraft.entity.ai.goal.LookAtGoal;
-import net.minecraft.entity.ai.goal.LookRandomlyGoal;
-import net.minecraft.entity.ai.goal.WaterAvoidingRandomWalkingGoal;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.particles.IParticleData;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.server.management.PreYggdrasilConverter;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.ClickEvent.Action;
-import net.minecraft.world.World;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.control.MoveControl;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.players.OldUsersConverter;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.Util;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.ClickEvent.Action;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -46,8 +46,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class PaperclipEntity extends CreatureEntity {
-	protected static final DataParameter<Optional<UUID>> OWNER_UNIQUE_ID = EntityDataManager.defineId(PaperclipEntity.class, DataSerializers.OPTIONAL_UUID);
+public class Paperclip extends PathfinderMob {
+	protected static final EntityDataAccessor<Optional<UUID>> OWNER_UNIQUE_ID = SynchedEntityData.defineId(Paperclip.class, EntityDataSerializers.OPTIONAL_UUID);
 
 	public float jumpAmount;
 	public float jumpFactor;
@@ -57,7 +57,7 @@ public class PaperclipEntity extends CreatureEntity {
 	public int tipCooldown;
 	private int lastHurtMessageTime;
 
-	public PaperclipEntity(EntityType<? extends PaperclipEntity> entityType, World worldIn) {
+	public Paperclip(EntityType<? extends Paperclip> entityType, Level worldIn) {
 		super(entityType, worldIn);
 		this.moveControl = new PaperclipMovementController(this);
 	}
@@ -68,22 +68,22 @@ public class PaperclipEntity extends CreatureEntity {
 	}
 
 	protected void registerGoals() {
-		this.goalSelector.addGoal(1, new PaperclipEntity.FloatGoal(this));
-		this.goalSelector.addGoal(2, new PaperclipEntity.PaperclipAttackGoal(this));
-		this.goalSelector.addGoal(3, new LookAtGoal(this, PlayerEntity.class, 8.0F));
-		this.goalSelector.addGoal(5, new PaperclipEntity.HopGoal(this));
+		this.goalSelector.addGoal(1, new Paperclip.FloatGoal(this));
+		this.goalSelector.addGoal(2, new Paperclip.PaperclipAttackGoal(this));
+		this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
+		this.goalSelector.addGoal(5, new Paperclip.HopGoal(this));
 		this.goalSelector.addGoal(4, new FollowPlayerGoal(this, 1.0D, 10.0F, 2.0F));
-		this.goalSelector.addGoal(4, new WaterAvoidingRandomWalkingGoal(this, 1.0D));
-		this.goalSelector.addGoal(6, new LookRandomlyGoal(this));
+		this.goalSelector.addGoal(4, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+		this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
 		this.registerTargetGoals();
 	}
 
 	private void registerTargetGoals() {
-		this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(PaperclipEntity.class));
+		this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(Paperclip.class));
 	}
 
-	public static AttributeModifierMap.MutableAttribute registerAttributes() {
-		return MobEntity.createMobAttributes()
+	public static AttributeSupplier.Builder registerAttributes() {
+		return Mob.createMobAttributes()
 				.add(Attributes.MAX_HEALTH, 16.0D)
 				.add(Attributes.FOLLOW_RANGE, 30.0D)
 				.add(Attributes.MOVEMENT_SPEED, 0.2F)
@@ -99,24 +99,24 @@ public class PaperclipEntity extends CreatureEntity {
 			if(this.tipCooldown == 0) {
 				this.tipCooldown = 200;
 				LivingEntity owner = getOwner();
-				if(owner instanceof PlayerEntity) {
-					PlayerEntity player = (PlayerEntity)owner;
+				if(owner instanceof Player) {
+					Player player = (Player)owner;
 
 					boolean recentlyAttacked = player.getLastHurtMob() != null && (player.tickCount - player.getLastHurtMobTimestamp()) < 200;
 					if(recentlyAttacked) {
-						IFormattableTextComponent baseComponent = getBaseChatComponent();
-						IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.fighting").withStyle(TextFormatting.WHITE);
-						IFormattableTextComponent yesComponent = new StringTextComponent("Yes");
+						MutableComponent baseComponent = getBaseChatComponent();
+						MutableComponent textComponent = new TranslatableComponent("paperclippy.line.fighting").withStyle(ChatFormatting.WHITE);
+						MutableComponent yesComponent = new TextComponent("Yes");
 						yesComponent.setStyle(textComponent.getStyle()
 								.withClickEvent(new FightClickEvent("/tellraw @a [\"\",{\"text\":\"" + getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
 										I18n.get("paperclippy.line.accept") + "\"}]", this)));
-						yesComponent.withStyle(TextFormatting.GREEN);
-						IFormattableTextComponent betweenComponent = new StringTextComponent(", ");
-						IFormattableTextComponent noComponent = new StringTextComponent("No");
+						yesComponent.withStyle(ChatFormatting.GREEN);
+						MutableComponent betweenComponent = new TextComponent(", ");
+						MutableComponent noComponent = new TextComponent("No");
 						noComponent.setStyle(textComponent.getStyle()
 								.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/tellraw @a [\"\",{\"text\":\"" + getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
 										I18n.get("paperclippy.line.decline") + "\"}]")));
-						noComponent.withStyle(TextFormatting.RED);
+						noComponent.withStyle(ChatFormatting.RED);
 						baseComponent.append(textComponent).append(yesComponent).append(betweenComponent).append(noComponent);
 
 						player.sendMessage(baseComponent, Util.NIL_UUID);
@@ -132,7 +132,7 @@ public class PaperclipEntity extends CreatureEntity {
 		super.doPush(entityIn);
 		LivingEntity target = this.getTarget();
 		if(this.isAlive() && target != null && target != this && target == entityIn) {
-			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.canSee(entityIn) && entityIn.hurt(DamageSource.mobAttack(this), (float)this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
+			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.hasLineOfSight(entityIn) && entityIn.hurt(DamageSource.mobAttack(this), (float)this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
 				this.playSound(SoundEvents.SLIME_ATTACK, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
 				this.doEnchantDamageEffects(this, entityIn);
 			}
@@ -142,11 +142,11 @@ public class PaperclipEntity extends CreatureEntity {
 	@Override
 	protected SoundEvent getHurtSound(DamageSource source) {
 		LivingEntity owner = getOwner();
-		if(owner instanceof PlayerEntity && !level.isClientSide && (this.lastHurtMessageTime == 0 || (this.tickCount - this.lastHurtMessageTime) > 100)) {
+		if(owner instanceof Player && !level.isClientSide && (this.lastHurtMessageTime == 0 || (this.tickCount - this.lastHurtMessageTime) > 100)) {
 			this.lastHurtMessageTime = this.tickCount;
-			PlayerEntity player = (PlayerEntity) owner;
-			IFormattableTextComponent baseComponent = getBaseChatComponent();
-			IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.hurt").withStyle(TextFormatting.WHITE);
+			Player player = (Player) owner;
+			MutableComponent baseComponent = getBaseChatComponent();
+			MutableComponent textComponent = new TranslatableComponent("paperclippy.line.hurt").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
 			player.sendMessage(baseComponent, Util.NIL_UUID);
 		}
@@ -156,10 +156,10 @@ public class PaperclipEntity extends CreatureEntity {
 	@Override
 	protected SoundEvent getDeathSound() {
 		LivingEntity owner = getOwner();
-		if(owner instanceof PlayerEntity && !level.isClientSide) {
-			PlayerEntity player = (PlayerEntity) owner;
-			IFormattableTextComponent baseComponent = getBaseChatComponent();
-			IFormattableTextComponent textComponent = new TranslationTextComponent("paperclippy.line.death").withStyle(TextFormatting.WHITE);
+		if(owner instanceof Player && !level.isClientSide) {
+			Player player = (Player) owner;
+			MutableComponent baseComponent = getBaseChatComponent();
+			MutableComponent textComponent = new TranslatableComponent("paperclippy.line.death").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
 			player.sendMessage(baseComponent, Util.NIL_UUID);
 		}
@@ -170,8 +170,8 @@ public class PaperclipEntity extends CreatureEntity {
 		return "<" + getName().getString() + ">";
 	}
 
-	public IFormattableTextComponent getBaseChatComponent() {
-		return new StringTextComponent(getChatName() + " ").withStyle(TextFormatting.YELLOW);
+	public MutableComponent getBaseChatComponent() {
+		return new TextComponent(getChatName() + " ").withStyle(ChatFormatting.YELLOW);
 	}
 
 	@Nullable
@@ -194,7 +194,7 @@ public class PaperclipEntity extends CreatureEntity {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundNBT compound) {
+	public void addAdditionalSaveData(CompoundTag compound) {
 		super.addAdditionalSaveData(compound);
 		compound.putBoolean("wasOnGround", this.wasOnGround);
 		compound.putInt("tipCooldown", this.tipCooldown);
@@ -205,7 +205,7 @@ public class PaperclipEntity extends CreatureEntity {
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundNBT compound) {
+	public void readAdditionalSaveData(CompoundTag compound) {
 		super.readAdditionalSaveData(compound);
 		this.wasOnGround = compound.getBoolean("wasOnGround");
 		this.tipCooldown = compound.getInt("tipCooldown");
@@ -215,7 +215,7 @@ public class PaperclipEntity extends CreatureEntity {
 			uuid = compound.getUUID("Owner");
 		} else {
 			String s = compound.getString("Owner");
-			uuid = PreYggdrasilConverter.convertMobOwnerIfNecessary(this.getServer(), s);
+			uuid = OldUsersConverter.convertMobOwnerIfNecessary(this.getServer(), s);
 		}
 
 		if (uuid != null) {
@@ -238,10 +238,10 @@ public class PaperclipEntity extends CreatureEntity {
 			for(int j = 0; j < i * 8; ++j) {
 				float f = this.random.nextFloat() * ((float)Math.PI * 2F);
 				float f1 = this.random.nextFloat() * 0.5F + 0.5F;
-				float f2 = MathHelper.sin(f) * (float)i * 0.5F * f1;
-				float f3 = MathHelper.cos(f) * (float)i * 0.5F * f1;
-				World world = this.level;
-				IParticleData iparticledata = ParticleTypes.FIREWORK;
+				float f2 = Mth.sin(f) * (float)i * 0.5F * f1;
+				float f3 = Mth.cos(f) * (float)i * 0.5F * f1;
+				Level world = this.level;
+				ParticleOptions iparticledata = ParticleTypes.FIREWORK;
 				double d0 = this.getX() + (double)f2;
 				double d1 = this.getZ() + (double)f3;
 				world.addParticle(iparticledata, d0, this.getBoundingBox().minY, d1, 0.0D, 0.0D, 0.0D);
@@ -262,7 +262,7 @@ public class PaperclipEntity extends CreatureEntity {
 	}
 
 	protected void jumpFromGround() {
-		Vector3d vec3d = this.getDeltaMovement();
+		Vec3 vec3d = this.getDeltaMovement();
 		this.setDeltaMovement(vec3d.x, (double)0.42F, vec3d.z);
 		this.hasImpulse = true;
 	}
@@ -275,25 +275,25 @@ public class PaperclipEntity extends CreatureEntity {
 	}
 
 	protected SoundEvent getJumpSound() {
-		return PaperRegistry.boing.get();
+		return PaperRegistry.BOING.get();
 	}
 
-	public PlayerEntity getNearestPlayer(int range) {
-		AxisAlignedBB axisalignedbb = (new AxisAlignedBB(getX(), getY(), getZ(), getX() + 1, getY() + 1, getZ() + 1)).inflate(range);
-		List<PlayerEntity> list = level.getEntitiesOfClass(PlayerEntity.class, axisalignedbb);
+	public Player getNearestPlayer(int range) {
+		AABB axisalignedbb = (new AABB(getX(), getY(), getZ(), getX() + 1, getY() + 1, getZ() + 1)).inflate(range);
+		List<Player> list = level.getEntitiesOfClass(Player.class, axisalignedbb);
 		return !list.isEmpty() ? list.get(0) : null;
 	}
 
 	public boolean isPlayerNearby(int range) {
-		AxisAlignedBB axisalignedbb = (new AxisAlignedBB(getX(), getY(), getZ(), getX() + 1, getY() + 1, getZ() + 1)).inflate(range);
-		List<PlayerEntity> list = level.getEntitiesOfClass(PlayerEntity.class, axisalignedbb);
+		AABB axisalignedbb = (new AABB(getX(), getY(), getZ(), getX() + 1, getY() + 1, getZ() + 1)).inflate(range);
+		List<Player> list = level.getEntitiesOfClass(Player.class, axisalignedbb);
 		return !list.isEmpty();
 	}
 
 	static class FloatGoal extends Goal {
-		private final PaperclipEntity paperclip;
+		private final Paperclip paperclip;
 
-		public FloatGoal(PaperclipEntity paperclipIn) {
+		public FloatGoal(Paperclip paperclipIn) {
 			this.paperclip = paperclipIn;
 			this.setFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
 			paperclipIn.getNavigation().setCanFloat(true);
@@ -304,7 +304,7 @@ public class PaperclipEntity extends CreatureEntity {
 		 * method as well.
 		 */
 		public boolean canUse() {
-			return (this.paperclip.isInWater() || this.paperclip.isInLava()) && this.paperclip.getMoveControl() instanceof PaperclipEntity.PaperclipMovementController;
+			return (this.paperclip.isInWater() || this.paperclip.isInLava()) && this.paperclip.getMoveControl() instanceof Paperclip.PaperclipMovementController;
 		}
 
 		/**
@@ -315,14 +315,14 @@ public class PaperclipEntity extends CreatureEntity {
 				this.paperclip.getJumpControl().jump();
 			}
 
-			((PaperclipEntity.PaperclipMovementController)this.paperclip.getMoveControl()).setSpeed(1.2D);
+			((Paperclip.PaperclipMovementController)this.paperclip.getMoveControl()).setSpeed(1.2D);
 		}
 	}
 
 	static class HopGoal extends Goal {
-		private final PaperclipEntity paperclip;
+		private final Paperclip paperclip;
 
-		public HopGoal(PaperclipEntity paperclipIn) {
+		public HopGoal(Paperclip paperclipIn) {
 			this.paperclip = paperclipIn;
 			this.setFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
 		}
@@ -338,20 +338,20 @@ public class PaperclipEntity extends CreatureEntity {
 		 * Keep ticking a continuous task that has already been started
 		 */
 		public void tick() {
-			((PaperclipEntity.PaperclipMovementController)this.paperclip.getMoveControl()).setSpeed(1.0D);
+			((Paperclip.PaperclipMovementController)this.paperclip.getMoveControl()).setSpeed(1.0D);
 		}
 	}
 
-	static class PaperclipMovementController extends MovementController {
+	static class PaperclipMovementController extends MoveControl {
 		private float yRot;
 		private int jumpDelay;
-		private final PaperclipEntity paperclip;
+		private final Paperclip paperclip;
 		private boolean isAggressive;
 
-		public PaperclipMovementController(PaperclipEntity paperclipIn) {
+		public PaperclipMovementController(Paperclip paperclipIn) {
 			super(paperclipIn);
 			this.paperclip = paperclipIn;
-			this.yRot = 180.0F * paperclipIn.yRot / (float)Math.PI;
+			this.yRot = 180.0F * paperclipIn.getYRot() / (float)Math.PI;
 		}
 
 		public void setDirection(float p_179920_1_, boolean p_179920_2_) {
@@ -361,18 +361,18 @@ public class PaperclipEntity extends CreatureEntity {
 
 		public void setSpeed(double speedIn) {
 			this.speedModifier = speedIn;
-			this.operation = MovementController.Action.MOVE_TO;
+			this.operation = MoveControl.Operation.MOVE_TO;
 		}
 
 		public void tick() {
-			this.mob.yRot = this.rotlerp(this.mob.yRot, this.yRot, 90.0F);
-			this.mob.yHeadRot = this.mob.yRot;
-			this.mob.yBodyRot = this.mob.yRot;
+			this.mob.setYRot(this.rotlerp(this.mob.getYRot(), this.yRot, 90.0F));
+			this.mob.yHeadRot = this.mob.getYRot();
+			this.mob.yBodyRot = this.mob.getYRot();
 
-			if (this.operation != MovementController.Action.MOVE_TO) {
+			if (this.operation != MoveControl.Operation.MOVE_TO) {
 				this.mob.setZza(0.0F);
 			} else {
-				this.operation = MovementController.Action.WAIT;
+				this.operation = MoveControl.Operation.WAIT;
 
 				if (this.mob.isOnGround()) {
 					this.mob.setSpeed((float)(this.speedModifier * this.mob.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
@@ -400,10 +400,10 @@ public class PaperclipEntity extends CreatureEntity {
 	}
 
 	static class PaperclipAttackGoal extends Goal {
-		private final PaperclipEntity paperclip;
+		private final Paperclip paperclip;
 		private int growTieredTimer;
 
-		public PaperclipAttackGoal(PaperclipEntity paperclipIn) {
+		public PaperclipAttackGoal(Paperclip paperclipIn) {
 			this.paperclip = paperclipIn;
 			this.setFlags(EnumSet.of(Goal.Flag.LOOK));
 		}
@@ -418,7 +418,7 @@ public class PaperclipEntity extends CreatureEntity {
 			} else if (!LivingEntity.isAlive()) {
 				return false;
 			} else {
-				return (!(LivingEntity instanceof PlayerEntity) || !((PlayerEntity) LivingEntity).abilities.invulnerable) && this.paperclip.getMoveControl() instanceof PaperclipMovementController;
+				return (!(LivingEntity instanceof Player) || !((Player) LivingEntity).getAbilities().invulnerable) && this.paperclip.getMoveControl() instanceof PaperclipMovementController;
 			}
 		}
 
@@ -440,7 +440,7 @@ public class PaperclipEntity extends CreatureEntity {
 				return false;
 			} else if (!LivingEntity.isAlive()) {
 				return false;
-			} else if (LivingEntity instanceof PlayerEntity && ((PlayerEntity)LivingEntity).abilities.invulnerable) {
+			} else if (LivingEntity instanceof Player && ((Player)LivingEntity).getAbilities().invulnerable) {
 				return false;
 			} else {
 				return --this.growTieredTimer > 0;
@@ -452,7 +452,7 @@ public class PaperclipEntity extends CreatureEntity {
 		 */
 		public void tick() {
 			this.paperclip.lookAt(this.paperclip.getTarget(), 10.0F, 10.0F);
-			((PaperclipMovementController)this.paperclip.getMoveControl()).setDirection(this.paperclip.yRot, true);
+			((PaperclipMovementController)this.paperclip.getMoveControl()).setDirection(this.paperclip.getYRot(), true);
 		}
 	}
 }

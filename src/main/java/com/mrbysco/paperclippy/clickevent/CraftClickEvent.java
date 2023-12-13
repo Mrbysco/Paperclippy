@@ -1,15 +1,15 @@
 package com.mrbysco.paperclippy.clickevent;
 
-import com.mrbysco.paperclippy.entity.PaperclipEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.crafting.ICraftingRecipe;
-import net.minecraft.util.text.event.ClickEvent;
+import com.mrbysco.paperclippy.entity.Paperclip;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.network.chat.ClickEvent;
 
 public class CraftClickEvent extends ClickEvent {
-	private final PaperclipEntity paperclip;
-	private final ICraftingRecipe recipe;
+	private final Paperclip paperclip;
+	private final CraftingRecipe recipe;
 
-	public CraftClickEvent(String commandValue, PaperclipEntity paperclipIn, ICraftingRecipe recipe) {
+	public CraftClickEvent(String commandValue, Paperclip paperclipIn, CraftingRecipe recipe) {
 		super(Action.RUN_COMMAND, commandValue);
 		this.paperclip = paperclipIn;
 		this.recipe = recipe;

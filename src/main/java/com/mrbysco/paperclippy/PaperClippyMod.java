@@ -12,11 +12,12 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod(Reference.MOD_ID)
-public class Paperclippy {
-    public static final Logger LOGGER = LogManager.getLogger(Reference.MOD_ID);
+@Mod(PaperClippyMod.MOD_ID)
+public class PaperClippyMod {
+    public static final String MOD_ID = "paperclippy";
+    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
-    public Paperclippy() {
+    public PaperClippyMod() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         PaperRegistry.ITEMS.register(eventBus);
@@ -28,7 +29,8 @@ public class Paperclippy {
         MinecraftForge.EVENT_BUS.register(new CraftingHandler());
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            eventBus.addListener(ClientHandler::onClientSetup);
+            eventBus.addListener(ClientHandler::registerEntityRenders);
+            eventBus.addListener(ClientHandler::registerLayerDefinitions);
         });
     }
 }

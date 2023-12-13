@@ -1,0 +1,12 @@
+{
+  "entity.paperclippy.paperclippy": "PaperClippy",
+  "item.paperclippy.paper_clip": "PaperClippy",
+  "paperclippy.line.accept": "Ok, here I go",
+  "paperclippy.line.crafting": "It looks like you're crafting, need help? ",
+  "paperclippy.line.death": "It looks like I turned back into an item",
+  "paperclippy.line.decline": "Ok, I'll leave you be",
+  "paperclippy.line.fighting": "It looks like you're fighting, need help? ",
+  "paperclippy.line.hurt": "It looks like I'm getting hurt",
+  "paperclippy.paperclip.info": "Need help with that?",
+  "paperclippy.subtitle.paperclippy.jump": "PaperClippy Jumps"
+}
