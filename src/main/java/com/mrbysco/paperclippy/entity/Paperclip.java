@@ -1,6 +1,5 @@
 package com.mrbysco.paperclippy.entity;
 
-import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.clickevent.FightClickEvent;
 import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
