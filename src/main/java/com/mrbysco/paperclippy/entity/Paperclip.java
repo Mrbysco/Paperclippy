@@ -312,8 +312,6 @@ public class Paperclip extends PathfinderMob {
 				List<ItemEntity> items = this.level().getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(2));
 				setCrafting(!items.isEmpty());
 
-				System.out.println(isCrafting());
-
 				List<ItemStack> stacks = items.stream().map(ItemEntity::getItem).filter(stack -> !ItemStack.isSameItem(stack, getCraftingResult())).toList();
 				if (items.isEmpty()) return;
 

@@ -24,8 +24,6 @@ public class CraftingHandler {
 				livingEntity instanceof Paperclip paperclip && paperclip.getOwner() != null && paperclip.getOwner().getUUID().equals(player.getUUID()));
 		Paperclip nearestClippy = level.getNearestEntity(Paperclip.class, clippyPredicate, player, player.getX(), player.getY(), player.getZ(), player.getBoundingBox().inflate(12D));
 		if (!level.isClientSide && nearestClippy != null) {
-			System.out.println("Found a clippy at " + nearestClippy.blockPosition());
-
 			MutableComponent baseComponent = nearestClippy.getBaseChatComponent();
 			MutableComponent textComponent = Component.translatable("paperclippy.line.crafting").withStyle(ChatFormatting.WHITE);
 			MutableComponent yesComponent = Component.literal("Yes");
