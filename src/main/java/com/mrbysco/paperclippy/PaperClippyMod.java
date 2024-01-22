@@ -10,7 +10,6 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -24,9 +23,7 @@ public class PaperClippyMod {
 
 	public static final TagKey<Item> BUCKETS = ItemTags.create(new ResourceLocation("paperclippy", "buckets"));
 
-	public PaperClippyMod() {
-		IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
+	public PaperClippyMod(IEventBus eventBus) {
 		PaperRegistry.ITEMS.register(eventBus);
 		PaperRegistry.ENTITY_TYPES.register(eventBus);
 		PaperRegistry.SOUND_EVENTS.register(eventBus);
