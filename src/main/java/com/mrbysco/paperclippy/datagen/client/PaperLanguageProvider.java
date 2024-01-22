@@ -2,11 +2,11 @@ package com.mrbysco.paperclippy.datagen.client;
 
 import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
-import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.common.data.LanguageProvider;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.common.data.LanguageProvider;
+
+import java.util.function.Supplier;
 
 public class PaperLanguageProvider extends LanguageProvider {
 	public PaperLanguageProvider(PackOutput packOutput) {
@@ -38,7 +38,7 @@ public class PaperLanguageProvider extends LanguageProvider {
 	 * @param sound The sound event registry object
 	 * @param text  The subtitle text
 	 */
-	private void addSubtitle(RegistryObject<SoundEvent> sound, String text) {
+	private void addSubtitle(Supplier<SoundEvent> sound, String text) {
 		this.addSubtitle(sound.get(), text);
 	}
 

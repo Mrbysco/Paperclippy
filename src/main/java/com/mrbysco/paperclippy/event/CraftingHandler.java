@@ -11,13 +11,13 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.entity.player.PlayerEvent.ItemCraftedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 public class CraftingHandler {
 
 	@SubscribeEvent
-	public void onItemCrafted(ItemCraftedEvent event) {
+	public void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
 		final Player player = event.getEntity();
 		final Level level = player.level();
 		TargetingConditions clippyPredicate = (TargetingConditions.forCombat()).range(12.0D).selector((livingEntity) ->

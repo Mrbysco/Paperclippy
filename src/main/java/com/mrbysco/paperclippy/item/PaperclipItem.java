@@ -17,7 +17,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.HitResult.Type;
-import net.minecraftforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.EventHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -31,7 +32,7 @@ public class PaperclipItem extends Item {
 	public InteractionResultHolder<ItemStack> use(Level level, Player playerIn, InteractionHand handIn) {
 		ItemStack itemstack = playerIn.getItemInHand(handIn);
 		HitResult traceResult = getPlayerPOVHitResult(level, playerIn, Fluid.NONE);
-		InteractionResultHolder<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onBucketUse(playerIn, level, itemstack, traceResult);
+		InteractionResultHolder<ItemStack> ret = EventHooks.onBucketUse(playerIn, level, itemstack, traceResult);
 		if (ret != null) return ret;
 
 		if (traceResult == null) {

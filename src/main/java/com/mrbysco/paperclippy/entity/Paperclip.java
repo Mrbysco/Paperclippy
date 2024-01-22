@@ -7,9 +7,12 @@ import com.mrbysco.paperclippy.registry.PaperRegistry;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.ClickEvent.Action;
@@ -46,13 +49,12 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.tags.ITag;
-import net.minecraftforge.registries.tags.ITagManager;
+import net.neoforged.neoforge.common.util.RecipeMatcher;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -73,7 +75,7 @@ public class Paperclip extends PathfinderMob {
 
 	public int tipCooldown;
 	private int lastHurtMessageTime;
-	private final List<CraftingRecipe> cachedRecipes = new ArrayList<>();
+	private final List<RecipeHolder<CraftingRecipe>> cachedRecipes = new ArrayList<>();
 
 	public Paperclip(EntityType<? extends Paperclip> entityType, Level level) {
 		super(entityType, level);
@@ -308,7 +310,7 @@ public class Paperclip extends PathfinderMob {
 
 		if (!getCraftingResult().isEmpty()) {
 			if (tickCount % 20 == 0) {
-				List<CraftingRecipe> recipes = getCraftingRecipes();
+				List<RecipeHolder<CraftingRecipe>> recipes = getCraftingRecipes();
 				List<ItemEntity> items = this.level().getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(2));
 				setCrafting(!items.isEmpty());
 
@@ -316,7 +318,8 @@ public class Paperclip extends PathfinderMob {
 				if (items.isEmpty()) return;
 
 				Container inventory = new SimpleContainer(stacks.toArray(new ItemStack[0]));
-				for (CraftingRecipe recipe : recipes) {
+				for (RecipeHolder<CraftingRecipe> holder : recipes) {
+					CraftingRecipe recipe = holder.value();
 					if (recipe instanceof CustomRecipe) continue;
 
 					NonNullList<Ingredient> ingredients = recipe.getIngredients();
@@ -335,7 +338,7 @@ public class Paperclip extends PathfinderMob {
 						}
 					}
 
-					if (i == ingredients.size() && (isSimple ? stackedcontents.canCraft(recipe, (IntList) null) : net.minecraftforge.common.util.RecipeMatcher.findMatches(inputs, ingredients) != null)) {
+					if (i == ingredients.size() && (isSimple ? stackedcontents.canCraft(recipe, (IntList) null) : RecipeMatcher.findMatches(inputs, ingredients) != null)) {
 						ItemStack result;
 						try {
 							result = recipe.assemble(null, this.level().registryAccess());
@@ -353,14 +356,12 @@ public class Paperclip extends PathfinderMob {
 									ItemStack stack = item.getItem();
 									if (stack.getItem().hasCraftingRemainingItem()) {
 										if (stack.is(Items.MILK_BUCKET) && random.nextDouble() < 0.3D) {
-											ITagManager<Item> tagManager = ForgeRegistries.ITEMS.tags();
 											Item bucket = Items.BUCKET;
-											if (tagManager != null) {
-												ITag<Item> oresTag = tagManager.getTag(PaperClippyMod.BUCKETS);
-												if (!oresTag.isEmpty()) {
-													Optional<Item> randomBucket = oresTag.getRandomElement(this.level().random);
-													bucket = randomBucket.orElse(Items.WATER_BUCKET);
-												}
+											Optional<HolderSet.Named<Item>> oresTag = BuiltInRegistries.ITEM.getTag(PaperClippyMod.BUCKETS);
+											if (oresTag.isPresent()) {
+												HolderSet.Named<Item> tagSet = oresTag.get();
+												Holder<Item> randomBucket = tagSet.getRandomElement(this.level().random).orElseGet(Items.WATER_BUCKET::builtInRegistryHolder);
+												bucket = randomBucket.value();
 											}
 											item.setItem(new ItemStack(bucket));
 										} else {
@@ -385,7 +386,7 @@ public class Paperclip extends PathfinderMob {
 		}
 	}
 
-	private List<CraftingRecipe> getCraftingRecipes() {
+	private List<RecipeHolder<CraftingRecipe>> getCraftingRecipes() {
 		if (getCraftingResult().isEmpty()) {
 			if (!cachedRecipes.isEmpty())
 				cachedRecipes.clear();
@@ -393,7 +394,7 @@ public class Paperclip extends PathfinderMob {
 		}
 		if (cachedRecipes.isEmpty())
 			cachedRecipes.addAll(this.level().getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING).stream()
-					.filter(recipe -> ItemStack.isSameItem(recipe.getResultItem(this.level().registryAccess()), getCraftingResult())).toList());
+					.filter(recipeHolder -> ItemStack.isSameItem(recipeHolder.value().getResultItem(this.level().registryAccess()), getCraftingResult())).toList());
 		return cachedRecipes;
 	}
 

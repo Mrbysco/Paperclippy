@@ -2,11 +2,10 @@ package com.mrbysco.paperclippy.datagen.client;
 
 import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
-import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.model.generators.ItemModelProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 public class PaperItemModelProvider extends ItemModelProvider {
 	public PaperItemModelProvider(PackOutput packOutput, ExistingFileHelper helper) {

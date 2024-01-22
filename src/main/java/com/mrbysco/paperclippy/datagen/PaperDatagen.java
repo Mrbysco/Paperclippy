@@ -10,11 +10,11 @@ import com.mrbysco.paperclippy.datagen.server.PaperRecipeProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraftforge.common.data.BlockTagsProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.data.BlockTagsProvider;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -28,7 +28,7 @@ public class PaperDatagen {
 		CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
 		if (event.includeServer()) {
-			generator.addProvider(true, new PaperRecipeProvider(packOutput));
+			generator.addProvider(true, new PaperRecipeProvider(packOutput, lookupProvider));
 			generator.addProvider(true, new PaperLootProvider(packOutput));
 			BlockTagsProvider provider = new BlockTagsProvider(packOutput, lookupProvider, PaperClippyMod.MOD_ID, helper) {
 				@Override

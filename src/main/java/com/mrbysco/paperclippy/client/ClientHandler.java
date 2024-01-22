@@ -6,7 +6,7 @@ import com.mrbysco.paperclippy.client.renderer.PaperclipRenderer;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 public class ClientHandler {
 	public static final ModelLayerLocation PAPERCLIPPY = new ModelLayerLocation(new ResourceLocation(PaperClippyMod.MOD_ID, "paperclippy"), "main");
