@@ -1,1 +1,1 @@
-* Remove leftover logging
+* Fix a potential crash on servers
