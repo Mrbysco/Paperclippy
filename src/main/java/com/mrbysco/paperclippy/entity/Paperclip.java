@@ -6,7 +6,6 @@ import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.NonNullList;
@@ -127,15 +126,17 @@ public class Paperclip extends PathfinderMob {
 						MutableComponent baseComponent = getBaseChatComponent();
 						MutableComponent textComponent = Component.translatable("paperclippy.line.fighting").withStyle(ChatFormatting.WHITE);
 						MutableComponent yesComponent = Component.literal("Yes");
+						MutableComponent acceptComponent = Component.translatable("paperclippy.line.accept");
 						yesComponent.setStyle(textComponent.getStyle()
 								.withClickEvent(new FightClickEvent("/tellraw @a [\"\",{\"text\":\"" + getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
-										I18n.get("paperclippy.line.accept") + "\"}]", this)));
+										acceptComponent.getString() + "\"}]", this)));
 						yesComponent.withStyle(ChatFormatting.GREEN);
 						MutableComponent betweenComponent = Component.literal(", ");
 						MutableComponent noComponent = Component.literal("No");
+						MutableComponent declineComponent = Component.translatable("paperclippy.line.decline");
 						noComponent.setStyle(textComponent.getStyle()
 								.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/tellraw @a [\"\",{\"text\":\"" + getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
-										I18n.get("paperclippy.line.decline") + "\"}]")));
+										declineComponent.getString() + "\"}]")));
 						noComponent.withStyle(ChatFormatting.RED);
 						baseComponent.append(textComponent).append(yesComponent).append(betweenComponent).append(noComponent);
 
