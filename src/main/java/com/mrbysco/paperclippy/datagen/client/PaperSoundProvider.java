@@ -17,21 +17,17 @@ public class PaperSoundProvider extends SoundDefinitionsProvider {
 	public void registerSounds() {
 		this.add(PaperRegistry.PAPERCLIP_BOING, definition()
 				.subtitle(modSubtitle(PaperRegistry.PAPERCLIP_BOING.getId()))
-				.with(sound(modLoc("boing"))));
+				.with(sound(PaperClippyMod.modLoc("boing"))));
 
 		this.add(PaperRegistry.PAPERCLIP_ATTACK, definition()
 				.subtitle(modSubtitle(PaperRegistry.PAPERCLIP_ATTACK.getId()))
 				.with(
-						sound(new ResourceLocation("mob/slime/attack1")),
-						sound(new ResourceLocation("mob/slime/attack2"))
+						sound(ResourceLocation.withDefaultNamespace("mob/slime/attack1")),
+						sound(ResourceLocation.withDefaultNamespace("mob/slime/attack2"))
 				));
 	}
 
 	private String modSubtitle(ResourceLocation id) {
 		return PaperClippyMod.MOD_ID + ".subtitle." + id.getPath();
-	}
-
-	private ResourceLocation modLoc(String name) {
-		return new ResourceLocation(PaperClippyMod.MOD_ID, name);
 	}
 }

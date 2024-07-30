@@ -4,7 +4,6 @@ import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.entity.Paperclip;
 import com.mrbysco.paperclippy.item.PaperclipItem;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -30,9 +29,9 @@ public class PaperRegistry {
 					.build("paperclippy"));
 
 	public static final DeferredHolder<SoundEvent, SoundEvent> PAPERCLIP_BOING = SOUND_EVENTS.register("paperclippy.jump", () ->
-			SoundEvent.createVariableRangeEvent(new ResourceLocation(PaperClippyMod.MOD_ID, "paperclippy.jump")));
+			SoundEvent.createVariableRangeEvent(PaperClippyMod.modLoc("paperclippy.jump")));
 	public static final DeferredHolder<SoundEvent, SoundEvent> PAPERCLIP_ATTACK = SOUND_EVENTS.register("paperclippy.attack", () ->
-			SoundEvent.createVariableRangeEvent(new ResourceLocation(PaperClippyMod.MOD_ID, "paperclippy.attack")));
+			SoundEvent.createVariableRangeEvent(PaperClippyMod.modLoc("paperclippy.attack")));
 
 	public static void registerEntityAttributes(EntityAttributeCreationEvent event) {
 		event.put(PAPERCLIPPY.get(), Paperclip.registerAttributes().build());

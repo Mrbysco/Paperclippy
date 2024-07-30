@@ -16,11 +16,8 @@ import net.minecraft.world.level.ClipContext.Fluid;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.HitResult.Type;
 import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.EventHooks;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class PaperclipItem extends Item {
@@ -32,13 +29,10 @@ public class PaperclipItem extends Item {
 	public InteractionResultHolder<ItemStack> use(Level level, Player playerIn, InteractionHand handIn) {
 		ItemStack itemstack = playerIn.getItemInHand(handIn);
 		HitResult traceResult = getPlayerPOVHitResult(level, playerIn, Fluid.NONE);
-		InteractionResultHolder<ItemStack> ret = EventHooks.onBucketUse(playerIn, level, itemstack, traceResult);
-		if (ret != null) return ret;
-
-		if (traceResult == null) {
-			return new InteractionResultHolder<>(InteractionResult.PASS, itemstack);
-		} else if (traceResult.getType() != Type.BLOCK) {
-			return new InteractionResultHolder<>(InteractionResult.PASS, itemstack);
+		if (traceResult.getType() == HitResult.Type.MISS) {
+			return InteractionResultHolder.pass(itemstack);
+		} else if (traceResult.getType() != HitResult.Type.BLOCK) {
+			return InteractionResultHolder.pass(itemstack);
 		} else {
 			BlockHitResult blockTraceResult = (BlockHitResult) traceResult;
 			BlockPos blockpos = blockTraceResult.getBlockPos();
@@ -59,8 +53,8 @@ public class PaperclipItem extends Item {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flagIn) {
-		super.appendHoverText(stack, level, tooltip, flagIn);
-		tooltip.add(Component.translatable("paperclippy.paperclip.info").withStyle(ChatFormatting.YELLOW));
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+		super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+		tooltipComponents.add(Component.translatable("paperclippy.paperclip.info").withStyle(ChatFormatting.YELLOW));
 	}
 }

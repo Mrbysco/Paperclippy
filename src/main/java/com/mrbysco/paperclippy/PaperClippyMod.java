@@ -4,10 +4,7 @@ import com.mrbysco.paperclippy.client.ClientHandler;
 import com.mrbysco.paperclippy.event.CraftingHandler;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -20,8 +17,6 @@ import org.apache.logging.log4j.Logger;
 public class PaperClippyMod {
 	public static final String MOD_ID = "paperclippy";
 	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
-
-	public static final TagKey<Item> BUCKETS = ItemTags.create(new ResourceLocation("paperclippy", "buckets"));
 
 	public PaperClippyMod(IEventBus eventBus) {
 		PaperRegistry.ITEMS.register(eventBus);
@@ -43,5 +38,9 @@ public class PaperClippyMod {
 		if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
 			event.accept(PaperRegistry.PAPER_CLIP);
 		}
+	}
+
+	public static ResourceLocation modLoc(String path) {
+		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
 	}
 }

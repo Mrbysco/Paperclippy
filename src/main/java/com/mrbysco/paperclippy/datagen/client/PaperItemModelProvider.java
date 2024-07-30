@@ -19,7 +19,7 @@ public class PaperItemModelProvider extends ItemModelProvider {
 	}
 
 	private void generatedItem(ResourceLocation location) {
-		singleTexture(location.getPath(), new ResourceLocation("item/generated"),
-				"layer0", new ResourceLocation(PaperClippyMod.MOD_ID, "item/" + location.getPath()));
+		singleTexture(location.getPath(), ResourceLocation.withDefaultNamespace("item/generated"),
+				"layer0", PaperClippyMod.modLoc("item/" + location.getPath()));
 	}
 }

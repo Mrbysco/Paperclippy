@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 public class PaperclipRenderer extends MobRenderer<Paperclip, PaperclipModel> {
-	private static final ResourceLocation TEXTURE = new ResourceLocation(PaperClippyMod.MOD_ID, "textures/entity/paperclippy.png");
+	private static final ResourceLocation TEXTURE = PaperClippyMod.modLoc("textures/entity/paperclippy.png");
 
 	public PaperclipRenderer(EntityRendererProvider.Context context) {
 		super(context, new PaperclipModel(context.bakeLayer(ClientHandler.PAPERCLIPPY)), 0.5F);

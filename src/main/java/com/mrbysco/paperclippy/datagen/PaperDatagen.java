@@ -1,24 +1,21 @@
 package com.mrbysco.paperclippy.datagen;
 
-import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.datagen.client.PaperItemModelProvider;
 import com.mrbysco.paperclippy.datagen.client.PaperLanguageProvider;
 import com.mrbysco.paperclippy.datagen.client.PaperSoundProvider;
-import com.mrbysco.paperclippy.datagen.server.PaperItemTagProvider;
 import com.mrbysco.paperclippy.datagen.server.PaperLootProvider;
 import com.mrbysco.paperclippy.datagen.server.PaperRecipeProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.common.data.BlockTagsProvider;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import java.util.concurrent.CompletableFuture;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
 public class PaperDatagen {
 	@SubscribeEvent
 	public static void gatherData(GatherDataEvent event) {
@@ -29,15 +26,7 @@ public class PaperDatagen {
 
 		if (event.includeServer()) {
 			generator.addProvider(true, new PaperRecipeProvider(packOutput, lookupProvider));
-			generator.addProvider(true, new PaperLootProvider(packOutput));
-			BlockTagsProvider provider = new BlockTagsProvider(packOutput, lookupProvider, PaperClippyMod.MOD_ID, helper) {
-				@Override
-				protected void addTags(HolderLookup.Provider provider) {
-
-				}
-			};
-			generator.addProvider(true, provider);
-			generator.addProvider(true, new PaperItemTagProvider(packOutput, lookupProvider, provider, helper));
+			generator.addProvider(true, new PaperLootProvider(packOutput, lookupProvider));
 		}
 		if (event.includeClient()) {
 			generator.addProvider(true, new PaperLanguageProvider(packOutput));

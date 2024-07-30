@@ -1,6 +1,5 @@
 package com.mrbysco.paperclippy.entity;
 
-import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.clickevent.FightClickEvent;
 import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
@@ -20,6 +19,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.players.OldUsersConverter;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
@@ -50,9 +50,11 @@ import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.util.RecipeMatcher;
 
 import javax.annotation.Nullable;
@@ -81,13 +83,15 @@ public class Paperclip extends PathfinderMob {
 		this.moveControl = new PaperclipMovementController(this);
 	}
 
-	protected void defineSynchedData() {
-		super.defineSynchedData();
-		this.entityData.define(OWNER_UNIQUE_ID, Optional.empty());
-		this.entityData.define(CRAFTING, false);
-		this.entityData.define(CRAFTING_RESULT, ItemStack.EMPTY);
+	@Override
+	protected void defineSynchedData(SynchedEntityData.Builder builder) {
+		super.defineSynchedData(builder);
+		builder.define(OWNER_UNIQUE_ID, Optional.empty());
+		builder.define(CRAFTING, false);
+		builder.define(CRAFTING_RESULT, ItemStack.EMPTY);
 	}
 
+	@Override
 	protected void registerGoals() {
 		this.goalSelector.addGoal(1, new Paperclip.FloatGoal(this));
 		this.goalSelector.addGoal(2, new Paperclip.PaperclipAttackGoal(this));
@@ -153,9 +157,13 @@ public class Paperclip extends PathfinderMob {
 		super.doPush(entityIn);
 		LivingEntity target = this.getTarget();
 		if (this.isAlive() && target != null && target != this && target == entityIn) {
-			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.hasLineOfSight(entityIn) && entityIn.hurt(damageSources().mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
+			DamageSource damagesource = damageSources().mobAttack(this);
+			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.hasLineOfSight(entityIn) &&
+					entityIn.hurt(damagesource, (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
 				this.playSound(PaperRegistry.PAPERCLIP_ATTACK.get(), 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
-				this.doEnchantDamageEffects(this, entityIn);
+				if (level() instanceof ServerLevel serverlevel) {
+					EnchantmentHelper.doPostAttackEffects(serverlevel, entityIn, damagesource);
+				}
 			}
 		}
 	}
@@ -240,7 +248,7 @@ public class Paperclip extends PathfinderMob {
 
 		ItemStack itemstack = getCraftingResult();
 		if (!itemstack.isEmpty()) {
-			compound.put("CraftResult", itemstack.save(new CompoundTag()));
+			compound.put("CraftResult", itemstack.saveOptional(this.registryAccess()));
 		}
 
 		compound.putBoolean("Crafting", isCrafting());
@@ -264,7 +272,7 @@ public class Paperclip extends PathfinderMob {
 			this.setOwnerId(uuid);
 		}
 
-		ItemStack itemstack = ItemStack.of(compound.getCompound("CraftResult"));
+		ItemStack itemstack = ItemStack.parseOptional(this.registryAccess(), compound.getCompound("CraftResult"));
 		if (!itemstack.isEmpty()) {
 			setCraftingResult(itemstack);
 		}
@@ -355,13 +363,14 @@ public class Paperclip extends PathfinderMob {
 									item.setItem(stack);
 								} else {
 									ItemStack stack = item.getItem();
-									if (stack.getItem().hasCraftingRemainingItem()) {
+									if (stack.hasCraftingRemainingItem()) {
 										if (stack.is(Items.MILK_BUCKET) && random.nextDouble() < 0.3D) {
 											Item bucket = Items.BUCKET;
-											Optional<HolderSet.Named<Item>> oresTag = BuiltInRegistries.ITEM.getTag(PaperClippyMod.BUCKETS);
+											Optional<HolderSet.Named<Item>> oresTag = BuiltInRegistries.ITEM.getTag(Tags.Items.BUCKETS);
 											if (oresTag.isPresent()) {
 												HolderSet.Named<Item> tagSet = oresTag.get();
-												Holder<Item> randomBucket = tagSet.getRandomElement(this.level().random).orElseGet(Items.WATER_BUCKET::builtInRegistryHolder);
+												Holder<Item> randomBucket = tagSet.getRandomElement(this.level().random)
+														.orElseGet(Items.WATER_BUCKET::builtInRegistryHolder);
 												bucket = randomBucket.value();
 											}
 											item.setItem(new ItemStack(bucket));
@@ -395,7 +404,8 @@ public class Paperclip extends PathfinderMob {
 		}
 		if (cachedRecipes.isEmpty())
 			cachedRecipes.addAll(this.level().getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING).stream()
-					.filter(recipeHolder -> ItemStack.isSameItem(recipeHolder.value().getResultItem(this.level().registryAccess()), getCraftingResult())).toList());
+					.filter(recipeHolder -> ItemStack.isSameItem(recipeHolder.value()
+							.getResultItem(this.level().registryAccess()), getCraftingResult())).toList());
 		return cachedRecipes;
 	}
 
@@ -403,7 +413,8 @@ public class Paperclip extends PathfinderMob {
 		this.jumpAmount *= 0.6F;
 	}
 
-	protected void jumpFromGround() {
+	@Override
+	public void jumpFromGround() {
 		Vec3 vec3d = this.getDeltaMovement();
 		this.setDeltaMovement(vec3d.x, (double) 0.42F, vec3d.z);
 		this.hasImpulse = true;
@@ -418,15 +429,6 @@ public class Paperclip extends PathfinderMob {
 
 	protected SoundEvent getJumpSound() {
 		return PaperRegistry.PAPERCLIP_BOING.get();
-	}
-
-	public Player getNearestPlayer(int range) {
-		List<Player> list = getNearbyPlayers(range);
-		return !list.isEmpty() ? list.get(0) : null;
-	}
-
-	public boolean isPlayerNearby(int range) {
-		return !getNearbyPlayers(range).isEmpty();
 	}
 
 	private List<Player> getNearbyPlayers(int range) {
