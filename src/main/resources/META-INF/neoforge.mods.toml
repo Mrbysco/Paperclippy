@@ -15,12 +15,12 @@ Paperclippy is helpful paperclip that follows you around and gives tips.
 [[dependencies.paperclippy]]
 modId="minecraft"
 type="required"
-versionRange="[1.21,1.22)"
+versionRange="[1.21.4,1.22)"
 ordering="NONE"
 side="BOTH"
 [[dependencies.paperclippy]]
 modId="neoforge"
 type="required"
-versionRange="[21.0.143,)"
+versionRange="[21.4.0-beta,)"
 ordering="NONE"
 side="BOTH"

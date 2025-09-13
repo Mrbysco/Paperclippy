@@ -49,7 +49,7 @@ public class PaperLanguageProvider extends LanguageProvider {
 	 * @param text  The subtitle text
 	 */
 	private void addSubtitle(SoundEvent sound, String text) {
-		String path = PaperClippyMod.MOD_ID + ".subtitle." + sound.getLocation().getPath();
+		String path = PaperClippyMod.MOD_ID + ".subtitle." + sound.location().getPath();
 		this.add(path, text);
 	}
 }

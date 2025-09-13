@@ -4,13 +4,12 @@ import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.SoundDefinitionsProvider;
 
 public class PaperSoundProvider extends SoundDefinitionsProvider {
 
-	public PaperSoundProvider(PackOutput packOutput, ExistingFileHelper helper) {
-		super(packOutput, PaperClippyMod.MOD_ID, helper);
+	public PaperSoundProvider(PackOutput packOutput) {
+		super(packOutput, PaperClippyMod.MOD_ID);
 	}
 
 	@Override

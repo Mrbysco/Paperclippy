@@ -3,11 +3,9 @@ package com.mrbysco.paperclippy.entity;
 import com.mrbysco.paperclippy.clickevent.FightClickEvent;
 import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
-import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -23,6 +21,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.players.OldUsersConverter;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
+import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -41,7 +40,7 @@ import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -144,7 +143,7 @@ public class Paperclip extends PathfinderMob {
 						noComponent.withStyle(ChatFormatting.RED);
 						baseComponent.append(textComponent).append(yesComponent).append(betweenComponent).append(noComponent);
 
-						player.sendSystemMessage(baseComponent);
+						player.displayClientMessage(baseComponent, false);
 					}
 				}
 			}
@@ -156,10 +155,10 @@ public class Paperclip extends PathfinderMob {
 	protected void doPush(Entity entityIn) {
 		super.doPush(entityIn);
 		LivingEntity target = this.getTarget();
-		if (this.isAlive() && target != null && target != this && target == entityIn) {
+		if (this.isAlive() && target != null && target != this && target == entityIn && !this.level().isClientSide) {
 			DamageSource damagesource = damageSources().mobAttack(this);
 			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.hasLineOfSight(entityIn) &&
-					entityIn.hurt(damagesource, (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
+					entityIn.hurtServer((ServerLevel) this.level(), damagesource, (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
 				this.playSound(PaperRegistry.PAPERCLIP_ATTACK.get(), 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
 				if (level() instanceof ServerLevel serverlevel) {
 					EnchantmentHelper.doPostAttackEffects(serverlevel, entityIn, damagesource);
@@ -176,7 +175,7 @@ public class Paperclip extends PathfinderMob {
 			MutableComponent baseComponent = getBaseChatComponent();
 			MutableComponent textComponent = Component.translatable("paperclippy.line.hurt").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
-			player.sendSystemMessage(baseComponent);
+			player.displayClientMessage(baseComponent, false);
 		}
 		return null;
 	}
@@ -188,7 +187,7 @@ public class Paperclip extends PathfinderMob {
 			MutableComponent baseComponent = getBaseChatComponent();
 			MutableComponent textComponent = Component.translatable("paperclippy.line.death").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
-			player.sendSystemMessage(baseComponent);
+			player.displayClientMessage(baseComponent, false);
 		}
 		return null;
 	}
@@ -331,9 +330,10 @@ public class Paperclip extends PathfinderMob {
 					CraftingRecipe recipe = holder.value();
 					if (recipe instanceof CustomRecipe) continue;
 
-					NonNullList<Ingredient> ingredients = recipe.getIngredients();
+
+					List<Ingredient> ingredients = recipe.placementInfo().ingredients();
 					boolean isSimple = ingredients.stream().allMatch(Ingredient::isSimple);
-					StackedContents stackedcontents = new StackedContents();
+					StackedItemContents stackedcontents = new StackedItemContents();
 					java.util.List<ItemStack> inputs = new java.util.ArrayList<>();
 					int i = 0;
 
@@ -347,12 +347,12 @@ public class Paperclip extends PathfinderMob {
 						}
 					}
 
-					if (i == ingredients.size() && (isSimple ? stackedcontents.canCraft(recipe, (IntList) null) : RecipeMatcher.findMatches(inputs, ingredients) != null)) {
+					if (i == ingredients.size() && (isSimple ? stackedcontents.canCraft(recipe, null) : RecipeMatcher.findMatches(inputs, ingredients) != null)) {
 						ItemStack result;
 						try {
 							result = recipe.assemble(null, this.level().registryAccess());
 						} catch (Exception e) {
-							result = recipe.getResultItem(this.level().registryAccess());
+							result = ItemStack.EMPTY;
 						}
 
 						if (!result.isEmpty()) {
@@ -363,10 +363,10 @@ public class Paperclip extends PathfinderMob {
 									item.setItem(stack);
 								} else {
 									ItemStack stack = item.getItem();
-									if (stack.hasCraftingRemainingItem()) {
+									if (!stack.getCraftingRemainder().isEmpty()) {
 										if (stack.is(Items.MILK_BUCKET) && random.nextDouble() < 0.3D) {
 											Item bucket = Items.BUCKET;
-											Optional<HolderSet.Named<Item>> oresTag = BuiltInRegistries.ITEM.getTag(Tags.Items.BUCKETS);
+											Optional<HolderSet.Named<Item>> oresTag = BuiltInRegistries.ITEM.get(Tags.Items.BUCKETS);
 											if (oresTag.isPresent()) {
 												HolderSet.Named<Item> tagSet = oresTag.get();
 												Holder<Item> randomBucket = tagSet.getRandomElement(this.level().random)
@@ -375,7 +375,7 @@ public class Paperclip extends PathfinderMob {
 											}
 											item.setItem(new ItemStack(bucket));
 										} else {
-											item.setItem(stack.getCraftingRemainingItem().copy());
+											item.setItem(stack.getCraftingRemainder().copy());
 										}
 									} else {
 										item.discard();
@@ -402,10 +402,10 @@ public class Paperclip extends PathfinderMob {
 				cachedRecipes.clear();
 			return new ArrayList<>();
 		}
-		if (cachedRecipes.isEmpty())
-			cachedRecipes.addAll(this.level().getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING).stream()
+		if (cachedRecipes.isEmpty() && !this.level().isClientSide)
+			cachedRecipes.addAll(((ServerLevel)this.level()).recipeAccess().recipeMap().byType(RecipeType.CRAFTING).stream()
 					.filter(recipeHolder -> ItemStack.isSameItem(recipeHolder.value()
-							.getResultItem(this.level().registryAccess()), getCraftingResult())).toList());
+							.display().getFirst().result().resolveForFirstStack(ContextMap.EMPTY), getCraftingResult())).toList());
 		return cachedRecipes;
 	}
 

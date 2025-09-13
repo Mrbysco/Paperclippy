@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -26,17 +26,17 @@ public class PaperclipItem extends Item {
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level level, Player playerIn, InteractionHand handIn) {
+	public InteractionResult use(Level level, Player playerIn, InteractionHand handIn) {
 		ItemStack itemstack = playerIn.getItemInHand(handIn);
 		HitResult traceResult = getPlayerPOVHitResult(level, playerIn, Fluid.NONE);
 		if (traceResult.getType() == HitResult.Type.MISS) {
-			return InteractionResultHolder.pass(itemstack);
+			return InteractionResult.PASS;
 		} else if (traceResult.getType() != HitResult.Type.BLOCK) {
-			return InteractionResultHolder.pass(itemstack);
+			return InteractionResult.PASS;
 		} else {
 			BlockHitResult blockTraceResult = (BlockHitResult) traceResult;
 			BlockPos blockpos = blockTraceResult.getBlockPos();
-			Paperclip paperClippy = PaperRegistry.PAPERCLIPPY.get().create(level);
+			Paperclip paperClippy = PaperRegistry.PAPERCLIPPY.get().create(level, EntitySpawnReason.SPAWN_ITEM_USE);
 			if (paperClippy != null) {
 				paperClippy.teleportTo(blockpos.getX(), blockpos.getY() + 1, blockpos.getZ());
 				if (!(playerIn instanceof FakePlayer)) {
@@ -48,7 +48,7 @@ public class PaperclipItem extends Item {
 			if (!playerIn.isCreative()) {
 				itemstack.shrink(1);
 			}
-			return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemstack);
+			return InteractionResult.SUCCESS;
 		}
 	}
 

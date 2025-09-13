@@ -17,16 +17,18 @@ import java.util.function.Supplier;
 
 public class PaperRegistry {
 	public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(PaperClippyMod.MOD_ID);
-	public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, PaperClippyMod.MOD_ID);
+	public static final DeferredRegister.Entities ENTITY_TYPES = DeferredRegister.createEntities(PaperClippyMod.MOD_ID);
 	public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, PaperClippyMod.MOD_ID);
 
-	public static final DeferredItem<PaperclipItem> PAPER_CLIP = ITEMS.register("paper_clip", () -> new PaperclipItem(new Item.Properties().stacksTo(1)));
+	public static final DeferredItem<PaperclipItem> PAPER_CLIP = ITEMS.registerItem("paper_clip", PaperclipItem::new, new Item.Properties().stacksTo(1));
 
-	public static final Supplier<EntityType<Paperclip>> PAPERCLIPPY = ENTITY_TYPES.register("paperclippy", () ->
-			EntityType.Builder.<Paperclip>of(Paperclip::new, MobCategory.AMBIENT)
+	public static final Supplier<EntityType<Paperclip>> PAPERCLIPPY = ENTITY_TYPES.registerEntityType("paperclippy",
+			Paperclip::new,
+			MobCategory.AMBIENT,
+			builder -> builder
 					.sized(0.7F, 1.95F)
 					.clientTrackingRange(10)
-					.build("paperclippy"));
+	);
 
 	public static final DeferredHolder<SoundEvent, SoundEvent> PAPERCLIP_BOING = SOUND_EVENTS.register("paperclippy.jump", () ->
 			SoundEvent.createVariableRangeEvent(PaperClippyMod.modLoc("paperclippy.jump")));
