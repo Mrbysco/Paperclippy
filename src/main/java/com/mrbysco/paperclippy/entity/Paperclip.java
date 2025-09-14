@@ -9,7 +9,6 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -51,6 +50,8 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.Tags;
@@ -246,32 +247,29 @@ public class Paperclip extends PathfinderMob {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag compound) {
-		super.addAdditionalSaveData(compound);
-		compound.putBoolean("wasOnGround", this.wasOnGround);
-		compound.putInt("tipCooldown", this.tipCooldown);
+	protected void addAdditionalSaveData(ValueOutput output) {
+		super.addAdditionalSaveData(output);
+		output.putBoolean("wasOnGround", this.wasOnGround);
+		output.putInt("tipCooldown", this.tipCooldown);
 
 		EntityReference<LivingEntity> entityreference = this.getOwnerReference();
 		if (entityreference != null) {
-			entityreference.store(compound, "Owner");
+			entityreference.store(output, "Owner");
 		}
 
-		ItemStack itemstack = getCraftingResult();
-		if (!itemstack.isEmpty()) {
-			compound.put("CraftResult", itemstack.save(this.registryAccess()));
-		}
+		output.store("CraftResult", ItemStack.OPTIONAL_CODEC, getCraftingResult());
 
-		compound.putBoolean("Crafting", isCrafting());
+		output.putBoolean("Crafting", isCrafting());
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag compound) {
-		super.readAdditionalSaveData(compound);
-		this.wasOnGround = compound.getBooleanOr("wasOnGround", false);
-		this.tipCooldown = compound.getIntOr("tipCooldown", 0);
+	protected void readAdditionalSaveData(ValueInput input) {
+		super.readAdditionalSaveData(input);
+		this.wasOnGround = input.getBooleanOr("wasOnGround", false);
+		this.tipCooldown = input.getIntOr("tipCooldown", 0);
 
 
-		EntityReference<LivingEntity> entityreference = EntityReference.readWithOldOwnerConversion(compound, "Owner", this.level());
+		EntityReference<LivingEntity> entityreference = EntityReference.readWithOldOwnerConversion(input, "Owner", this.level());
 		if (entityreference != null) {
 			try {
 				this.entityData.set(DATA_OWNERUUID_ID, Optional.of(entityreference));
@@ -282,12 +280,12 @@ public class Paperclip extends PathfinderMob {
 			this.entityData.set(DATA_OWNERUUID_ID, Optional.empty());
 		}
 
-		Optional<ItemStack> resultStack = ItemStack.parse(this.registryAccess(), compound.getCompoundOrEmpty("CraftResult"));
+		Optional<ItemStack> resultStack = input.read("CraftResult", ItemStack.OPTIONAL_CODEC);
 		if (resultStack.isPresent() && !resultStack.get().isEmpty()) {
 			setCraftingResult(resultStack.get());
 		}
 
-		setCrafting(compound.getBooleanOr("Crafting", false));
+		setCrafting(input.getBooleanOr("Crafting", false));
 	}
 
 	@Override
