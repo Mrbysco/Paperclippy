@@ -31,7 +31,7 @@ public class CraftingHandler {
 				MutableComponent textComponent = Component.translatable("paperclippy.line.crafting").withStyle(ChatFormatting.WHITE);
 				MutableComponent yesComponent = Component.literal("Yes");
 				yesComponent.setStyle(textComponent.getStyle()
-						.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+						.withClickEvent(new ClickEvent.RunCommand(
 								"/paperclippy set_crafting " + clippyUUID + " " + itemName
 						))
 				);
@@ -39,7 +39,7 @@ public class CraftingHandler {
 				MutableComponent betweenComponent = Component.literal(", ");
 				MutableComponent noComponent = Component.literal("No");
 				noComponent.setStyle(textComponent.getStyle()
-						.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+						.withClickEvent(new ClickEvent.RunCommand(
 								"/paperclippy clear_crafting " + clippyUUID
 						))
 				);

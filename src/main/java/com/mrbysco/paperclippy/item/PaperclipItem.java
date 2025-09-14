@@ -12,13 +12,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.ClipContext.Fluid;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.common.util.FakePlayer;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public class PaperclipItem extends Item {
 	public PaperclipItem(Properties properties) {
@@ -40,7 +41,7 @@ public class PaperclipItem extends Item {
 			if (paperClippy != null) {
 				paperClippy.teleportTo(blockpos.getX(), blockpos.getY() + 1, blockpos.getZ());
 				if (!(playerIn instanceof FakePlayer)) {
-					paperClippy.setOwnerId(playerIn.getUUID());
+					paperClippy.setOwner(playerIn);
 				}
 				level.addFreshEntity(paperClippy);
 			}
@@ -53,8 +54,8 @@ public class PaperclipItem extends Item {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-		super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
-		tooltipComponents.add(Component.translatable("paperclippy.paperclip.info").withStyle(ChatFormatting.YELLOW));
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flag) {
+		super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flag);
+		tooltipAdder.accept(Component.translatable("paperclippy.paperclip.info").withStyle(ChatFormatting.YELLOW));
 	}
 }

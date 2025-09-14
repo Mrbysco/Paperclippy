@@ -119,7 +119,7 @@ public class FollowPlayerGoal extends Goal {
 		} else if (!this.isTeleportFriendlyBlock(new BlockPos(x, y, z))) {
 			return false;
 		} else {
-			this.paperclip.moveTo((double) x + 0.5D, (double) y, (double) z + 0.5D, this.paperclip.getYRot(), this.paperclip.getXRot());
+			this.paperclip.snapTo((double) x + 0.5D, (double) y, (double) z + 0.5D, this.paperclip.getYRot(), this.paperclip.getXRot());
 			this.navigator.stop();
 			return true;
 		}

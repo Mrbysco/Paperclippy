@@ -1,5 +1,6 @@
 package com.mrbysco.paperclippy.entity;
 
+import com.mrbysco.paperclippy.PaperClippyMod;
 import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.ChatFormatting;
@@ -10,14 +11,12 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.ClickEvent.Action;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.players.OldUsersConverter;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.util.context.ContextMap;
@@ -25,6 +24,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -64,7 +64,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class Paperclip extends PathfinderMob {
-	protected static final EntityDataAccessor<Optional<UUID>> OWNER_UNIQUE_ID = SynchedEntityData.defineId(Paperclip.class, EntityDataSerializers.OPTIONAL_UUID);
+	protected static final EntityDataAccessor<Optional<EntityReference<LivingEntity>>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(Paperclip.class, EntityDataSerializers.OPTIONAL_LIVING_ENTITY_REFERENCE);
 	protected static final EntityDataAccessor<Boolean> CRAFTING = SynchedEntityData.defineId(Paperclip.class, EntityDataSerializers.BOOLEAN);
 	protected static final EntityDataAccessor<ItemStack> CRAFTING_RESULT = SynchedEntityData.defineId(Paperclip.class, EntityDataSerializers.ITEM_STACK);
 
@@ -85,7 +85,7 @@ public class Paperclip extends PathfinderMob {
 	@Override
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 		super.defineSynchedData(builder);
-		builder.define(OWNER_UNIQUE_ID, Optional.empty());
+		builder.define(DATA_OWNERUUID_ID, Optional.empty());
 		builder.define(CRAFTING, false);
 		builder.define(CRAFTING_RESULT, ItemStack.EMPTY);
 	}
@@ -134,7 +134,7 @@ public class Paperclip extends PathfinderMob {
 						String targetUUID = player.getUUID().toString(); // Assuming the player is the target
 
 						yesComponent.setStyle(textComponent.getStyle()
-								.withClickEvent(new ClickEvent(Action.RUN_COMMAND,
+								.withClickEvent(new ClickEvent.RunCommand(
 										"/paperclippy set_target " + clippyUUID + " " + targetUUID)));
 						yesComponent.withStyle(ChatFormatting.GREEN);
 
@@ -142,7 +142,7 @@ public class Paperclip extends PathfinderMob {
 						MutableComponent noComponent = Component.literal("No");
 
 						noComponent.setStyle(textComponent.getStyle()
-								.withClickEvent(new ClickEvent(Action.RUN_COMMAND,
+								.withClickEvent(new ClickEvent.RunCommand(
 										"/paperclippy set_target " + clippyUUID + " none")));
 						noComponent.withStyle(ChatFormatting.RED);
 
@@ -206,18 +206,22 @@ public class Paperclip extends PathfinderMob {
 	}
 
 	@Nullable
-	public UUID getOwnerId() {
-		return this.entityData.get(OWNER_UNIQUE_ID).orElse((UUID) null);
+	public EntityReference<LivingEntity> getOwnerReference() {
+		return this.entityData.get(DATA_OWNERUUID_ID).orElse(null);
 	}
 
-	public void setOwnerId(@Nullable UUID uuid) {
-		this.entityData.set(OWNER_UNIQUE_ID, Optional.ofNullable(uuid));
+	public void setOwner(@Nullable LivingEntity owner) {
+		this.entityData.set(DATA_OWNERUUID_ID, Optional.ofNullable(owner).map(EntityReference::new));
+	}
+
+	public void setOwnerReference(@Nullable EntityReference<LivingEntity> owner) {
+		this.entityData.set(DATA_OWNERUUID_ID, Optional.ofNullable(owner));
 	}
 
 	@Nullable
 	public LivingEntity getOwner() {
 		try {
-			UUID uuid = this.getOwnerId();
+			UUID uuid = this.getOwnerReference().getUUID();
 			return uuid == null ? null : this.level().getPlayerByUUID(uuid);
 		} catch (IllegalArgumentException illegalargumentexception) {
 			return null;
@@ -247,13 +251,14 @@ public class Paperclip extends PathfinderMob {
 		compound.putBoolean("wasOnGround", this.wasOnGround);
 		compound.putInt("tipCooldown", this.tipCooldown);
 
-		if (this.getOwnerId() != null) {
-			compound.putUUID("Owner", this.getOwnerId());
+		EntityReference<LivingEntity> entityreference = this.getOwnerReference();
+		if (entityreference != null) {
+			entityreference.store(compound, "Owner");
 		}
 
 		ItemStack itemstack = getCraftingResult();
 		if (!itemstack.isEmpty()) {
-			compound.put("CraftResult", itemstack.saveOptional(this.registryAccess()));
+			compound.put("CraftResult", itemstack.save(this.registryAccess()));
 		}
 
 		compound.putBoolean("Crafting", isCrafting());
@@ -262,27 +267,27 @@ public class Paperclip extends PathfinderMob {
 	@Override
 	public void readAdditionalSaveData(CompoundTag compound) {
 		super.readAdditionalSaveData(compound);
-		this.wasOnGround = compound.getBoolean("wasOnGround");
-		this.tipCooldown = compound.getInt("tipCooldown");
+		this.wasOnGround = compound.getBooleanOr("wasOnGround", false);
+		this.tipCooldown = compound.getIntOr("tipCooldown", 0);
 
-		UUID uuid;
-		if (compound.hasUUID("Owner")) {
-			uuid = compound.getUUID("Owner");
+
+		EntityReference<LivingEntity> entityreference = EntityReference.readWithOldOwnerConversion(compound, "Owner", this.level());
+		if (entityreference != null) {
+			try {
+				this.entityData.set(DATA_OWNERUUID_ID, Optional.of(entityreference));
+			} catch (Throwable throwable) {
+				PaperClippyMod.LOGGER.error("Failed to read owner entity reference", throwable);
+			}
 		} else {
-			String s = compound.getString("Owner");
-			uuid = OldUsersConverter.convertMobOwnerIfNecessary(this.getServer(), s);
+			this.entityData.set(DATA_OWNERUUID_ID, Optional.empty());
 		}
 
-		if (uuid != null) {
-			this.setOwnerId(uuid);
+		Optional<ItemStack> resultStack = ItemStack.parse(this.registryAccess(), compound.getCompoundOrEmpty("CraftResult"));
+		if (resultStack.isPresent() && !resultStack.get().isEmpty()) {
+			setCraftingResult(resultStack.get());
 		}
 
-		ItemStack itemstack = ItemStack.parseOptional(this.registryAccess(), compound.getCompound("CraftResult"));
-		if (!itemstack.isEmpty()) {
-			setCraftingResult(itemstack);
-		}
-
-		setCrafting(compound.getBoolean("Crafting"));
+		setCrafting(compound.getBooleanOr("Crafting", false));
 	}
 
 	@Override
