@@ -1,1 +1,1 @@
-* Fix Paperclippy not being able to fight for you
+* Update to 1.21.5
