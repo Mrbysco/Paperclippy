@@ -1,6 +1,5 @@
 package com.mrbysco.paperclippy.entity;
 
-import com.mrbysco.paperclippy.clickevent.FightClickEvent;
 import com.mrbysco.paperclippy.entity.goal.FollowPlayerGoal;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.ChatFormatting;
@@ -130,18 +129,23 @@ public class Paperclip extends PathfinderMob {
 						MutableComponent baseComponent = getBaseChatComponent();
 						MutableComponent textComponent = Component.translatable("paperclippy.line.fighting").withStyle(ChatFormatting.WHITE);
 						MutableComponent yesComponent = Component.literal("Yes");
-						MutableComponent acceptComponent = Component.translatable("paperclippy.line.accept");
+						// Get UUIDs
+						String clippyUUID = this.getUUID().toString();
+						String targetUUID = player.getUUID().toString(); // Assuming the player is the target
+
 						yesComponent.setStyle(textComponent.getStyle()
-								.withClickEvent(new FightClickEvent("/tellraw @a [\"\",{\"text\":\"" + getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
-										acceptComponent.getString() + "\"}]", this)));
+								.withClickEvent(new ClickEvent(Action.RUN_COMMAND,
+										"/paperclippy set_target " + clippyUUID + " " + targetUUID)));
 						yesComponent.withStyle(ChatFormatting.GREEN);
+
 						MutableComponent betweenComponent = Component.literal(", ");
 						MutableComponent noComponent = Component.literal("No");
-						MutableComponent declineComponent = Component.translatable("paperclippy.line.decline");
+
 						noComponent.setStyle(textComponent.getStyle()
-								.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/tellraw @a [\"\",{\"text\":\"" + getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
-										declineComponent.getString() + "\"}]")));
+								.withClickEvent(new ClickEvent(Action.RUN_COMMAND,
+										"/paperclippy set_target " + clippyUUID + " none")));
 						noComponent.withStyle(ChatFormatting.RED);
+
 						baseComponent.append(textComponent).append(yesComponent).append(betweenComponent).append(noComponent);
 
 						player.displayClientMessage(baseComponent, false);

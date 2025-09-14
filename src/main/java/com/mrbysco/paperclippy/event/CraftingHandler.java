@@ -1,10 +1,8 @@
 package com.mrbysco.paperclippy.event;
 
-import com.mrbysco.paperclippy.clickevent.CraftClickEvent;
 import com.mrbysco.paperclippy.entity.Paperclip;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.ClickEvent.Action;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
@@ -25,27 +23,23 @@ public class CraftingHandler {
 		if (!level.isClientSide) {
 			Paperclip nearestClippy = ((ServerLevel) level).getNearestEntity(Paperclip.class, clippyPredicate, player,
 					player.getX(), player.getY(), player.getZ(), player.getBoundingBox().inflate(12D));
-			String clippyUUID = nearestClippy.getUUID().toString();
-			String itemName = event.getCrafting().getItem().builtInRegistryHolder().getKey().location().toString();
-
 			if (nearestClippy != null) {
+				String clippyUUID = nearestClippy.getUUID().toString();
+				String itemName = event.getCrafting().getItem().builtInRegistryHolder().getKey().location().toString();
+
 				MutableComponent baseComponent = nearestClippy.getBaseChatComponent();
 				MutableComponent textComponent = Component.translatable("paperclippy.line.crafting").withStyle(ChatFormatting.WHITE);
 				MutableComponent yesComponent = Component.literal("Yes");
-				MutableComponent acceptComponent = Component.translatable("paperclippy.line.accept");
 				yesComponent.setStyle(textComponent.getStyle()
-						.withClickEvent(new CraftClickEvent(
-								"/paperclippy set_crafting " + clippyUUID + " " + itemName,
-								nearestClippy, event.getCrafting().copy()
+						.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+								"/paperclippy set_crafting " + clippyUUID + " " + itemName
 						))
 				);
 				yesComponent.withStyle(ChatFormatting.GREEN);
 				MutableComponent betweenComponent = Component.literal(", ");
 				MutableComponent noComponent = Component.literal("No");
-				MutableComponent declineComponent = Component.translatable("paperclippy.line.decline");
 				noComponent.setStyle(textComponent.getStyle()
-						.withClickEvent(new ClickEvent(
-								Action.RUN_COMMAND,
+						.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
 								"/paperclippy clear_crafting " + clippyUUID
 						))
 				);

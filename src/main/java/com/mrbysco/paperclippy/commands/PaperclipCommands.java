@@ -15,6 +15,7 @@ import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -36,6 +37,18 @@ public class PaperclipCommands {
 				.then(Commands.literal("clear_crafting")
 						.then(Commands.argument("paperclip", EntityArgument.entity())
 								.executes(PaperclipCommands::clearCrafting)
+						)
+				)
+				.then(Commands.literal("set_target")
+						.then(Commands.argument("paperclip", EntityArgument.entity())
+								.then(Commands.argument("target", EntityArgument.entity())
+										.executes(PaperclipCommands::setTarget)
+								)
+						)
+				)
+				.then(Commands.literal("clear_target")
+						.then(Commands.argument("paperclip", EntityArgument.entity())
+								.executes(PaperclipCommands::clearTarget)
 						)
 				);
 
@@ -73,6 +86,50 @@ public class PaperclipCommands {
 						.append(" ").append(Component.translatable("paperclippy.line.decline").withStyle(ChatFormatting.WHITE)), false);
 			}
 			paperclip.setCraftingResult(ItemStack.EMPTY);
+
+		} else {
+			ctx.getSource().sendFailure(Component.literal("The selected entity is not a Paperclip!"));
+			return 0;
+		}
+		return 1;
+	}
+
+	private static int setTarget(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		final ServerLevel serverLevel = ctx.getSource().getLevel();
+		final Entity entity = EntityArgument.getEntity(ctx, "paperclip");
+		if (entity instanceof Paperclip paperclip) {
+			final Entity target = EntityArgument.getEntity(ctx, "target");
+			if (target != paperclip && target.isAlive() && target instanceof LivingEntity livingtarget) {
+				paperclip.setTarget(livingtarget);
+				List<Player> players = serverLevel.getNearbyPlayers(TargetingConditions.forNonCombat().range(10).ignoreLineOfSight(),
+						paperclip, paperclip.getBoundingBox().inflate(10D));
+				for (Player player : players) {
+					player.displayClientMessage(Component.literal(paperclip.getChatName()).withStyle(ChatFormatting.YELLOW)
+							.append(" ").append(Component.translatable("paperclippy.line.accept").withStyle(ChatFormatting.WHITE)), false);
+				}
+			} else {
+				ctx.getSource().sendFailure(Component.literal("The target entity is invalid!"));
+				return 0;
+			}
+
+		} else {
+			ctx.getSource().sendFailure(Component.literal("The selected entity is not a Paperclip!"));
+			return 0;
+		}
+		return 1;
+	}
+
+	private static int clearTarget(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		final ServerLevel serverLevel = ctx.getSource().getLevel();
+		final Entity entity = EntityArgument.getEntity(ctx, "paperclip");
+		if (entity instanceof Paperclip paperclip) {
+			paperclip.setTarget(null);
+			List<Player> players = serverLevel.getNearbyPlayers(TargetingConditions.forNonCombat().range(10).ignoreLineOfSight(),
+					paperclip, paperclip.getBoundingBox().inflate(10D));
+			for (Player player : players) {
+				player.displayClientMessage(Component.literal(paperclip.getChatName()).withStyle(ChatFormatting.YELLOW)
+						.append(" ").append(Component.translatable("paperclippy.line.accept").withStyle(ChatFormatting.WHITE)), false);
+			}
 
 		} else {
 			ctx.getSource().sendFailure(Component.literal("The selected entity is not a Paperclip!"));
