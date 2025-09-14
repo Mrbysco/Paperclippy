@@ -25,6 +25,8 @@ public class CraftingHandler {
 		if (!level.isClientSide) {
 			Paperclip nearestClippy = ((ServerLevel) level).getNearestEntity(Paperclip.class, clippyPredicate, player,
 					player.getX(), player.getY(), player.getZ(), player.getBoundingBox().inflate(12D));
+			String clippyUUID = nearestClippy.getUUID().toString();
+			String itemName = event.getCrafting().getItem().builtInRegistryHolder().getKey().location().toString();
 
 			if (nearestClippy != null) {
 				MutableComponent baseComponent = nearestClippy.getBaseChatComponent();
@@ -32,15 +34,21 @@ public class CraftingHandler {
 				MutableComponent yesComponent = Component.literal("Yes");
 				MutableComponent acceptComponent = Component.translatable("paperclippy.line.accept");
 				yesComponent.setStyle(textComponent.getStyle()
-						.withClickEvent(new CraftClickEvent("/tellraw @a [\"\",{\"text\":\"" + nearestClippy.getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
-								acceptComponent.getString() + "\"}]", nearestClippy, event.getCrafting().copy())));
+						.withClickEvent(new CraftClickEvent(
+								"/paperclippy set_crafting " + clippyUUID + " " + itemName,
+								nearestClippy, event.getCrafting().copy()
+						))
+				);
 				yesComponent.withStyle(ChatFormatting.GREEN);
 				MutableComponent betweenComponent = Component.literal(", ");
 				MutableComponent noComponent = Component.literal("No");
 				MutableComponent declineComponent = Component.translatable("paperclippy.line.decline");
 				noComponent.setStyle(textComponent.getStyle()
-						.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/tellraw @a [\"\",{\"text\":\"" + nearestClippy.getChatName() + "\",\"color\":\"yellow\"},{\"text\":\" " +
-								declineComponent.getString() + "\"}]")));
+						.withClickEvent(new ClickEvent(
+								Action.RUN_COMMAND,
+								"/paperclippy clear_crafting " + clippyUUID
+						))
+				);
 				noComponent.withStyle(ChatFormatting.RED);
 				baseComponent.append(textComponent).append(yesComponent).append(betweenComponent).append(noComponent);
 

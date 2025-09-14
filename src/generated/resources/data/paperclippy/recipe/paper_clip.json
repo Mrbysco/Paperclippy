@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "N": {
-      "tag": "c:nuggets/iron"
-    },
-    "P": {
-      "item": "minecraft:paper"
-    }
+    "N": "#c:nuggets/iron",
+    "P": "minecraft:paper"
   },
   "pattern": [
     "PN",

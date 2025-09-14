@@ -49,6 +49,7 @@ import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -225,6 +226,7 @@ public class Paperclip extends PathfinderMob {
 
 	public void setCraftingResult(ItemStack stack) {
 		this.entityData.set(CRAFTING_RESULT, stack);
+		this.cachedRecipes.clear();
 	}
 
 	public boolean isCrafting() {
@@ -403,9 +405,14 @@ public class Paperclip extends PathfinderMob {
 			return new ArrayList<>();
 		}
 		if (cachedRecipes.isEmpty() && !this.level().isClientSide)
-			cachedRecipes.addAll(((ServerLevel)this.level()).recipeAccess().recipeMap().byType(RecipeType.CRAFTING).stream()
-					.filter(recipeHolder -> ItemStack.isSameItem(recipeHolder.value()
-							.display().getFirst().result().resolveForFirstStack(ContextMap.EMPTY), getCraftingResult())).toList());
+			cachedRecipes.addAll(((ServerLevel) this.level()).recipeAccess().recipeMap().byType(RecipeType.CRAFTING).stream()
+					.filter(recipeHolder -> {
+						for (RecipeDisplay display : recipeHolder.value().display()) {
+							ItemStack resultStack = display.result().resolveForFirstStack(ContextMap.EMPTY);
+							return ItemStack.isSameItem(resultStack, getCraftingResult());
+						}
+						return false;
+					}).toList());
 		return cachedRecipes;
 	}
 
@@ -416,7 +423,7 @@ public class Paperclip extends PathfinderMob {
 	@Override
 	public void jumpFromGround() {
 		Vec3 vec3d = this.getDeltaMovement();
-		this.setDeltaMovement(vec3d.x, (double) 0.42F, vec3d.z);
+		this.setDeltaMovement(vec3d.x, 0.42D, vec3d.z);
 		this.hasImpulse = true;
 	}
 

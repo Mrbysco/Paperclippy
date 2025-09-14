@@ -1,6 +1,7 @@
 package com.mrbysco.paperclippy;
 
 import com.mrbysco.paperclippy.client.ClientHandler;
+import com.mrbysco.paperclippy.commands.PaperclipCommands;
 import com.mrbysco.paperclippy.event.CraftingHandler;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.resources.ResourceLocation;
@@ -10,6 +11,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,11 +29,16 @@ public class PaperClippyMod {
 		eventBus.addListener(this::addTabContents);
 
 		NeoForge.EVENT_BUS.register(new CraftingHandler());
+		NeoForge.EVENT_BUS.addListener(this::onCommandRegister);
 
 		if (FMLEnvironment.dist.isClient()) {
 			eventBus.addListener(ClientHandler::registerEntityRenders);
 			eventBus.addListener(ClientHandler::registerLayerDefinitions);
 		}
+	}
+
+	public void onCommandRegister(RegisterCommandsEvent event) {
+		PaperclipCommands.initializeCommands(event.getDispatcher(), event.getBuildContext());
 	}
 
 	private void addTabContents(final BuildCreativeModeTabContentsEvent event) {

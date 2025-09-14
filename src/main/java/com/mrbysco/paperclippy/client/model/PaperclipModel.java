@@ -1,8 +1,6 @@
 package com.mrbysco.paperclippy.client.model;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mrbysco.paperclippy.entity.Paperclip;
+import com.mrbysco.paperclippy.client.state.PaperClipRenderState;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -11,11 +9,10 @@ import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 
-public class PaperclipModel extends EntityModel<Paperclip> {
-	private final ModelPart root;
+public class PaperclipModel extends EntityModel<PaperClipRenderState> {
 
 	public PaperclipModel(ModelPart root) {
-		this.root = root.getChild("paperclippy");
+		super(root);
 	}
 
 	public static LayerDefinition createBodyLayer() {
@@ -64,12 +61,7 @@ public class PaperclipModel extends EntityModel<Paperclip> {
 	}
 
 	@Override
-	public void setupAnim(Paperclip entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-
-	}
-
-	@Override
-	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
-		root.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+	public void setupAnim(PaperClipRenderState renderState) {
+		super.setupAnim(renderState);
 	}
 }
