@@ -8,11 +8,11 @@ import com.mrbysco.paperclippy.client.state.PaperClipRenderState;
 import com.mrbysco.paperclippy.entity.Paperclip;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 public class PaperclipRenderer extends MobRenderer<Paperclip, PaperClipRenderState, PaperclipModel> {
-	private static final ResourceLocation TEXTURE = PaperClippyMod.modLoc("textures/entity/paperclippy.png");
+	private static final Identifier TEXTURE = PaperClippyMod.modLoc("textures/entity/paperclippy.png");
 
 	public PaperclipRenderer(EntityRendererProvider.Context context) {
 		super(context, new PaperclipModel(context.bakeLayer(ClientHandler.PAPERCLIPPY)), 0.5F);
@@ -41,7 +41,7 @@ public class PaperclipRenderer extends MobRenderer<Paperclip, PaperClipRenderSta
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(PaperClipRenderState renderState) {
+	public Identifier getTextureLocation(PaperClipRenderState renderState) {
 		return TEXTURE;
 	}
 }

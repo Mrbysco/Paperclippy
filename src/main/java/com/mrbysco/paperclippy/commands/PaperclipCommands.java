@@ -26,7 +26,7 @@ public class PaperclipCommands {
 	public static void initializeCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
 		final LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("paperclippy");
 
-		root.requires((source) -> source.hasPermission(2))
+		root.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
 				.then(Commands.literal("set_crafting")
 						.then(Commands.argument("paperclip", EntityArgument.entity())
 								.then(Commands.argument("result", ItemArgument.item(context))

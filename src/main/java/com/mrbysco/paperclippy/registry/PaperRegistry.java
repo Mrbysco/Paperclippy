@@ -20,7 +20,7 @@ public class PaperRegistry {
 	public static final DeferredRegister.Entities ENTITY_TYPES = DeferredRegister.createEntities(PaperClippyMod.MOD_ID);
 	public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, PaperClippyMod.MOD_ID);
 
-	public static final DeferredItem<PaperclipItem> PAPER_CLIP = ITEMS.registerItem("paper_clip", PaperclipItem::new, new Item.Properties().stacksTo(1));
+	public static final DeferredItem<PaperclipItem> PAPER_CLIP = ITEMS.registerItem("paper_clip", PaperclipItem::new, () -> new Item.Properties().stacksTo(1));
 
 	public static final Supplier<EntityType<Paperclip>> PAPERCLIPPY = ENTITY_TYPES.registerEntityType("paperclippy",
 			Paperclip::new,

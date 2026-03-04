@@ -120,7 +120,7 @@ public class Paperclip extends PathfinderMob {
 
 	@Override
 	protected SoundEvent getAmbientSound() {
-		if (!this.dead && !this.level().isClientSide) {
+		if (!this.dead && !this.level().isClientSide()) {
 			if (this.tipCooldown == 0) {
 				this.tipCooldown = 200;
 				LivingEntity owner = getOwner();
@@ -161,7 +161,7 @@ public class Paperclip extends PathfinderMob {
 	protected void doPush(Entity entityIn) {
 		super.doPush(entityIn);
 		LivingEntity target = this.getTarget();
-		if (this.isAlive() && target != null && target != this && target == entityIn && !this.level().isClientSide) {
+		if (this.isAlive() && target != null && target != this && target == entityIn && !this.level().isClientSide()) {
 			DamageSource damagesource = damageSources().mobAttack(this);
 			if (this.distanceToSqr(entityIn) < 0.6D * 2 * 0.6D * 2 && this.hasLineOfSight(entityIn) &&
 					entityIn.hurtServer((ServerLevel) this.level(), damagesource, (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
@@ -176,7 +176,7 @@ public class Paperclip extends PathfinderMob {
 	@Override
 	protected SoundEvent getHurtSound(DamageSource source) {
 		LivingEntity owner = getOwner();
-		if (owner instanceof Player player && !this.level().isClientSide && (this.lastHurtMessageTime == 0 || (this.tickCount - this.lastHurtMessageTime) > 100)) {
+		if (owner instanceof Player player && !this.level().isClientSide() && (this.lastHurtMessageTime == 0 || (this.tickCount - this.lastHurtMessageTime) > 100)) {
 			this.lastHurtMessageTime = this.tickCount;
 			MutableComponent baseComponent = getBaseChatComponent();
 			MutableComponent textComponent = Component.translatable("paperclippy.line.hurt").withStyle(ChatFormatting.WHITE);
@@ -189,7 +189,7 @@ public class Paperclip extends PathfinderMob {
 	@Override
 	protected SoundEvent getDeathSound() {
 		LivingEntity owner = getOwner();
-		if (owner instanceof Player player && !this.level().isClientSide) {
+		if (owner instanceof Player player && !this.level().isClientSide()) {
 			MutableComponent baseComponent = getBaseChatComponent();
 			MutableComponent textComponent = Component.translatable("paperclippy.line.death").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
@@ -212,7 +212,7 @@ public class Paperclip extends PathfinderMob {
 	}
 
 	public void setOwner(@Nullable LivingEntity owner) {
-		this.entityData.set(DATA_OWNERUUID_ID, Optional.ofNullable(owner).map(EntityReference::new));
+		this.entityData.set(DATA_OWNERUUID_ID, Optional.ofNullable(owner).map(EntityReference::of));
 	}
 
 	public void setOwnerReference(@Nullable EntityReference<LivingEntity> owner) {
@@ -411,7 +411,7 @@ public class Paperclip extends PathfinderMob {
 				cachedRecipes.clear();
 			return new ArrayList<>();
 		}
-		if (cachedRecipes.isEmpty() && !this.level().isClientSide)
+		if (cachedRecipes.isEmpty() && !this.level().isClientSide())
 			cachedRecipes.addAll(((ServerLevel) this.level()).recipeAccess().recipeMap().byType(RecipeType.CRAFTING).stream()
 					.filter(recipeHolder -> {
 						for (RecipeDisplay display : recipeHolder.value().display()) {
@@ -431,7 +431,7 @@ public class Paperclip extends PathfinderMob {
 	public void jumpFromGround() {
 		Vec3 vec3d = this.getDeltaMovement();
 		this.setDeltaMovement(vec3d.x, 0.42D, vec3d.z);
-		this.hasImpulse = true;
+		this.needsSync = true;
 	}
 
 	/**

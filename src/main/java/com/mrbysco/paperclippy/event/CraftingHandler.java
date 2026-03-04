@@ -20,12 +20,12 @@ public class CraftingHandler {
 		final Level level = player.level();
 		TargetingConditions clippyPredicate = (TargetingConditions.forCombat()).range(12.0D).selector((livingEntity, serverLevel) ->
 				livingEntity instanceof Paperclip paperclip && paperclip.getOwner() != null && paperclip.getOwner().getUUID().equals(player.getUUID()));
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			Paperclip nearestClippy = ((ServerLevel) level).getNearestEntity(Paperclip.class, clippyPredicate, player,
 					player.getX(), player.getY(), player.getZ(), player.getBoundingBox().inflate(12D));
 			if (nearestClippy != null) {
 				String clippyUUID = nearestClippy.getUUID().toString();
-				String itemName = event.getCrafting().getItem().builtInRegistryHolder().getKey().location().toString();
+				String itemName = event.getCrafting().getItem().builtInRegistryHolder().getKey().identifier().toString();
 
 				MutableComponent baseComponent = nearestClippy.getBaseChatComponent();
 				MutableComponent textComponent = Component.translatable("paperclippy.line.crafting").withStyle(ChatFormatting.WHITE);

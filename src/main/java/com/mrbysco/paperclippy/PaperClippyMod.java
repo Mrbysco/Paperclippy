@@ -4,11 +4,11 @@ import com.mrbysco.paperclippy.client.ClientHandler;
 import com.mrbysco.paperclippy.commands.PaperclipCommands;
 import com.mrbysco.paperclippy.event.CraftingHandler;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -20,7 +20,7 @@ public class PaperClippyMod {
 	public static final String MOD_ID = "paperclippy";
 	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
-	public PaperClippyMod(IEventBus eventBus) {
+	public PaperClippyMod(IEventBus eventBus, Dist dist) {
 		PaperRegistry.ITEMS.register(eventBus);
 		PaperRegistry.ENTITY_TYPES.register(eventBus);
 		PaperRegistry.SOUND_EVENTS.register(eventBus);
@@ -31,7 +31,7 @@ public class PaperClippyMod {
 		NeoForge.EVENT_BUS.register(new CraftingHandler());
 		NeoForge.EVENT_BUS.addListener(this::onCommandRegister);
 
-		if (FMLEnvironment.dist.isClient()) {
+		if (dist.isClient()) {
 			eventBus.addListener(ClientHandler::registerEntityRenders);
 			eventBus.addListener(ClientHandler::registerLayerDefinitions);
 		}
@@ -47,7 +47,7 @@ public class PaperClippyMod {
 		}
 	}
 
-	public static ResourceLocation modLoc(String path) {
-		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+	public static Identifier modLoc(String path) {
+		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 	}
 }
