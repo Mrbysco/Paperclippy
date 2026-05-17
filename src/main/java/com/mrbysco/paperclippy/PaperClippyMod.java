@@ -1,12 +1,10 @@
 package com.mrbysco.paperclippy;
 
-import com.mrbysco.paperclippy.client.ClientHandler;
 import com.mrbysco.paperclippy.commands.PaperclipCommands;
 import com.mrbysco.paperclippy.event.CraftingHandler;
 import com.mrbysco.paperclippy.registry.PaperRegistry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
@@ -20,7 +18,7 @@ public class PaperClippyMod {
 	public static final String MOD_ID = "paperclippy";
 	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
-	public PaperClippyMod(IEventBus eventBus, Dist dist) {
+	public PaperClippyMod(IEventBus eventBus) {
 		PaperRegistry.ITEMS.register(eventBus);
 		PaperRegistry.ENTITY_TYPES.register(eventBus);
 		PaperRegistry.SOUND_EVENTS.register(eventBus);
@@ -30,11 +28,6 @@ public class PaperClippyMod {
 
 		NeoForge.EVENT_BUS.register(new CraftingHandler());
 		NeoForge.EVENT_BUS.addListener(this::onCommandRegister);
-
-		if (dist.isClient()) {
-			eventBus.addListener(ClientHandler::registerEntityRenders);
-			eventBus.addListener(ClientHandler::registerLayerDefinitions);
-		}
 	}
 
 	public void onCommandRegister(RegisterCommandsEvent event) {

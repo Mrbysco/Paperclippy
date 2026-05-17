@@ -62,11 +62,11 @@ public class PaperclipCommands {
 			List<Player> players = serverLevel.getNearbyPlayers(TargetingConditions.forNonCombat().range(10).ignoreLineOfSight(),
 					paperclip, paperclip.getBoundingBox().inflate(10D));
 			for (Player player : players) {
-				player.displayClientMessage(Component.literal(paperclip.getChatName()).withStyle(ChatFormatting.YELLOW)
-						.append(" ").append(Component.translatable("paperclippy.line.accept").withStyle(ChatFormatting.WHITE)), false);
+				player.sendSystemMessage(Component.literal(paperclip.getChatName()).withStyle(ChatFormatting.YELLOW)
+						.append(" ").append(Component.translatable("paperclippy.line.accept").withStyle(ChatFormatting.WHITE)));
 			}
 			final ItemInput result = ItemArgument.getItem(ctx, "result");
-			paperclip.setCraftingResult(result.createItemStack(1, false));
+			paperclip.setCraftingResult(result.createItemStack(1));
 
 		} else {
 			ctx.getSource().sendFailure(Component.literal("The selected entity is not a Paperclip!"));
@@ -82,8 +82,8 @@ public class PaperclipCommands {
 			List<Player> players = serverLevel.getNearbyPlayers(TargetingConditions.forNonCombat().range(10).ignoreLineOfSight(),
 					paperclip, paperclip.getBoundingBox().inflate(10D));
 			for (Player player : players) {
-				player.displayClientMessage(Component.literal(paperclip.getChatName()).withStyle(ChatFormatting.YELLOW)
-						.append(" ").append(Component.translatable("paperclippy.line.decline").withStyle(ChatFormatting.WHITE)), false);
+				player.sendSystemMessage(Component.literal(paperclip.getChatName()).withStyle(ChatFormatting.YELLOW)
+						.append(" ").append(Component.translatable("paperclippy.line.decline").withStyle(ChatFormatting.WHITE)));
 			}
 			paperclip.setCraftingResult(ItemStack.EMPTY);
 
@@ -104,8 +104,8 @@ public class PaperclipCommands {
 				List<Player> players = serverLevel.getNearbyPlayers(TargetingConditions.forNonCombat().range(10).ignoreLineOfSight(),
 						paperclip, paperclip.getBoundingBox().inflate(10D));
 				for (Player player : players) {
-					player.displayClientMessage(Component.literal(paperclip.getChatName()).withStyle(ChatFormatting.YELLOW)
-							.append(" ").append(Component.translatable("paperclippy.line.accept").withStyle(ChatFormatting.WHITE)), false);
+					player.sendSystemMessage(Component.literal(paperclip.getChatName()).withStyle(ChatFormatting.YELLOW)
+							.append(" ").append(Component.translatable("paperclippy.line.accept").withStyle(ChatFormatting.WHITE)));
 				}
 			} else {
 				ctx.getSource().sendFailure(Component.literal("The target entity is invalid!"));
@@ -127,8 +127,8 @@ public class PaperclipCommands {
 			List<Player> players = serverLevel.getNearbyPlayers(TargetingConditions.forNonCombat().range(10).ignoreLineOfSight(),
 					paperclip, paperclip.getBoundingBox().inflate(10D));
 			for (Player player : players) {
-				player.displayClientMessage(Component.literal(paperclip.getChatName()).withStyle(ChatFormatting.YELLOW)
-						.append(" ").append(Component.translatable("paperclippy.line.accept").withStyle(ChatFormatting.WHITE)), false);
+				player.sendSystemMessage(Component.literal(paperclip.getChatName()).withStyle(ChatFormatting.YELLOW)
+						.append(" ").append(Component.translatable("paperclippy.line.accept").withStyle(ChatFormatting.WHITE)));
 			}
 
 		} else {

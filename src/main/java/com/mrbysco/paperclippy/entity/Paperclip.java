@@ -42,6 +42,7 @@ import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -149,7 +150,7 @@ public class Paperclip extends PathfinderMob {
 
 						baseComponent.append(textComponent).append(yesComponent).append(betweenComponent).append(noComponent);
 
-						player.displayClientMessage(baseComponent, false);
+						player.sendSystemMessage(baseComponent);
 					}
 				}
 			}
@@ -181,7 +182,7 @@ public class Paperclip extends PathfinderMob {
 			MutableComponent baseComponent = getBaseChatComponent();
 			MutableComponent textComponent = Component.translatable("paperclippy.line.hurt").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
-			player.displayClientMessage(baseComponent, false);
+			player.sendSystemMessage(baseComponent);
 		}
 		return null;
 	}
@@ -193,7 +194,7 @@ public class Paperclip extends PathfinderMob {
 			MutableComponent baseComponent = getBaseChatComponent();
 			MutableComponent textComponent = Component.translatable("paperclippy.line.death").withStyle(ChatFormatting.WHITE);
 			baseComponent.append(textComponent);
-			player.displayClientMessage(baseComponent, false);
+			player.sendSystemMessage(baseComponent);
 		}
 		return null;
 	}
@@ -359,7 +360,7 @@ public class Paperclip extends PathfinderMob {
 					if (i == ingredients.size() && (isSimple ? stackedcontents.canCraft(recipe, null) : RecipeMatcher.findMatches(inputs, ingredients) != null)) {
 						ItemStack result;
 						try {
-							result = recipe.assemble(null, this.level().registryAccess());
+							result = recipe.assemble(CraftingInput.EMPTY);
 						} catch (Exception e) {
 							result = ItemStack.EMPTY;
 						}
@@ -372,19 +373,19 @@ public class Paperclip extends PathfinderMob {
 									item.setItem(stack);
 								} else {
 									ItemStack stack = item.getItem();
-									if (!stack.getCraftingRemainder().isEmpty()) {
+									if (stack.getCraftingRemainder() != null) {
 										if (stack.is(Items.MILK_BUCKET) && random.nextDouble() < 0.3D) {
 											Item bucket = Items.BUCKET;
 											Optional<HolderSet.Named<Item>> oresTag = BuiltInRegistries.ITEM.get(Tags.Items.BUCKETS);
 											if (oresTag.isPresent()) {
 												HolderSet.Named<Item> tagSet = oresTag.get();
-												Holder<Item> randomBucket = tagSet.getRandomElement(this.level().random)
+												Holder<Item> randomBucket = tagSet.getRandomElement(this.level().getRandom())
 														.orElseGet(Items.WATER_BUCKET::builtInRegistryHolder);
 												bucket = randomBucket.value();
 											}
 											item.setItem(new ItemStack(bucket));
 										} else {
-											item.setItem(stack.getCraftingRemainder().copy());
+											item.setItem(stack.getCraftingRemainder().create());
 										}
 									} else {
 										item.discard();

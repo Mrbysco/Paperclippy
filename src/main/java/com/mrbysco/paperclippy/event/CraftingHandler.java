@@ -46,7 +46,7 @@ public class CraftingHandler {
 				noComponent.withStyle(ChatFormatting.RED);
 				baseComponent.append(textComponent).append(yesComponent).append(betweenComponent).append(noComponent);
 
-				player.displayClientMessage(baseComponent, false);
+				player.sendSystemMessage(baseComponent);
 
 				nearestClippy.tipCooldown = 20;
 			}
